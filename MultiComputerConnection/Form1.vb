@@ -23,7 +23,6 @@ Public Class Form1
     Public Const chrGiveComs As Char = Chr(2)
     Public Const chrMessageEnd As Char = Chr(3)
 
-
     Private listener As New TcpListener(5019)
     Private client As New TcpClient
 
@@ -89,8 +88,8 @@ Public Class Form1
                     lstComputers.Add(shtInfo)
                     lbxComputersConnectedTo.Items.Add(shtInfo)
 
-                    Dim Writer As New StreamWriter(client.GetStream())
-                    GiveComNamesToFriends(Writer, shtInfo)
+                    'Dim Writer As New StreamWriter(client.GetStream())
+                    'GiveComNamesToFriends(Writer, shtInfo)
 
                 End If
                 shtInfo = String.Empty
@@ -164,7 +163,7 @@ Public Class Form1
 
         GiveComNamesToFriends(Writer, tbxConnectionComputerName.Text)
 
-        'send it my computers.
+        'send *it* my computers.
         For index As Short = 0 To lstComputers.Count - 1
             If lstComputers(index).ToString = My.Computer.Name Then
                 Continue For  'Don't include my name
