@@ -63,7 +63,7 @@ Public Class Form1
 
         While Reader.Peek > -1  'Changes each character sent into a string and adds it to the 
             Dim chrCurrent As Char = Convert.ToChar(Reader.Read())
-
+            Debug.Print("cahr " & chrCurrent)
             'Set process if needed
             If chrCurrent = chrStartProcessingText Then
                 currentProcess = Process.StringStart
@@ -84,7 +84,8 @@ Public Class Form1
                 shtInfo += chrCurrent
 
             ElseIf currentProcess = Process.AddComEnd Then  'this is inefficient cause all coms have to give anmes and it repeats.
-                If lstComputers.Contains(shtInfo) = False Then
+                Debug.Print(" Almost Got Computer : " & shtInfo)
+                If lstComputers.Contains(shtInfo) = False And shtInfo <> My.Computer.Name Then
                     lstComputers.Add(shtInfo)
                     lbxComputersConnectedTo.Items.Add(shtInfo)
 
@@ -98,6 +99,9 @@ Public Class Form1
                 shtInfo = String.Empty
 
             ElseIf currentProcess = Process.GiveComs Then 'Other computer tells it's name, this computer gives any other names to that com.
+
+                Debug.Print(" Was Given : " & shtInfo)
+
                 If lstComputers.Count <> 0 Then 'If lstComputers has items in it, send them
                     client = New TcpClient(shtInfo, 5019)
                     Dim Writer As New StreamWriter(client.GetStream())
@@ -164,9 +168,8 @@ Public Class Form1
         Writer.Write(chrStartProcessingText & My.Computer.Name & chrGiveComs)
         Writer.Flush()
 
-        GiveComNamesToFriends(Writer, tbxConnectionComputerName.Text)
-
         'send *it* my computers.
+        Writer = New StreamWriter(client.GetStream())
         For index As Short = 0 To lstComputers.Count - 1
             If lstComputers(index).ToString = My.Computer.Name Then
                 Continue For  'Don't include my name
@@ -175,11 +178,14 @@ Public Class Form1
             Writer.Flush()
         Next
 
+        'Give my friends it's name
+        GiveComNamesToFriends(tbxConnectionComputerName.Text)
+
         lstComputers.Add(tbxConnectionComputerName.Text)
         lbxComputersConnectedTo.Items.Add(tbxConnectionComputerName.Text)
     End Sub
 
-    Private Sub GiveComNamesToFriends(ByRef Writer As StreamWriter, ByVal name As String)
+    Private Sub GiveComNamesToFriends(ByVal name As String)
         'send my computers the name
         For index As Short = 0 To lstComputers.Count - 1
             If lstComputers(index).ToString = My.Computer.Name Then
@@ -187,6 +193,8 @@ Public Class Form1
             End If
 
             client = New TcpClient(lstComputers(index).ToString, 5019)
+
+            Dim Writer as New StreamWriter(client.GetStream())
             Writer.Write(chrStartProcessingText & name & chrAddComToConnectListEnd)
             Writer.Flush()
         Next
