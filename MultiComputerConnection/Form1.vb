@@ -161,19 +161,23 @@ Public Class Form1
             Exit Sub
         End If
 
+        'Send my name and ask for it's computers
         client = New TcpClient(tbxConnectionComputerName.Text, 5019)
 
-        'Send my name and ask for it's computers
         Dim Writer As New StreamWriter(client.GetStream())
         Writer.Write(chrStartProcessingText & My.Computer.Name & chrGiveComs)
         Writer.Flush()
 
         'send *it* my computers.
-        Writer = New StreamWriter(client.GetStream())
+
         For index As Short = 0 To lstComputers.Count - 1
             If lstComputers(index).ToString = My.Computer.Name Then
                 Continue For  'Don't include my name
             End If
+
+            client = New TcpClient(tbxConnectionComputerName.Text, 5019)
+
+            Writer = New StreamWriter(client.GetStream())
             Writer.Write(chrStartProcessingText & lstComputers(index).ToString & chrAddComToConnectListEnd)
             Writer.Flush()
         Next
