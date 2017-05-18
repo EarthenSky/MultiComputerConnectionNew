@@ -88,6 +88,9 @@ Public Class Form1
                     lstComputers.Add(shtInfo)
                     lbxComputersConnectedTo.Items.Add(shtInfo)
 
+                    Debug.Print(" Got Computer : " & shtInfo)
+
+                    'Don't need this, maybe breaking it?
                     'Dim Writer As New StreamWriter(client.GetStream())
                     'GiveComNamesToFriends(Writer, shtInfo)
 
