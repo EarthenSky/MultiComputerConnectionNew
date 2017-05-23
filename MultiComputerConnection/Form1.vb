@@ -23,23 +23,59 @@ Public Class Form1
     Public Const chrGiveComs As Char = Chr(2)
     Public Const chrMessageEnd As Char = Chr(3)
 
+    Public Const chrMoveDirection As Char = Chr(4)
+    Public Const chrMoveNumber As Char = Chr(5)
+
+    Private currentFileDirectory As String = Directory.GetCurrentDirectory.Remove(Directory.GetCurrentDirectory.IndexOf("\bin\Debug"), 10) + "\"
+    Private imgEnemyOne As Image
+    Private imgBackground As Image
+
     Private listener As New TcpListener(5019)
     Private client As New TcpClient
 
     Private lstComputers As New List(Of String)
+    Public obj As OverDropObject
 
     Private Sub Form1_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
+        imgBackground = Image.FromFile(currentFileDirectory & "Grid of tiles.png")
+        imgEnemyOne = Image.FromFile(currentFileDirectory & "EnemyFOne.png")
+
+        obj = New OverDropObject(New Point(10, 10), imgEnemyOne)
+
         Dim ListenerThread As New Thread(New ThreadStart(AddressOf Listening))
         tbxConnectionComputerName.Text = My.Computer.Name
         ListenerThread.Start()
     End Sub
 
+    Sub PaintMain(ByVal o As Object, ByVal e As PaintEventArgs) Handles pbxPlayArea.Paint
+        e.Graphics.DrawImage(imgBackground, New Rectangle(100, 100, 100, 100))
+        e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.pntPosition.X, obj.pntPosition.Y, obj.imgMainImage.Width, obj.imgMainImage.Height))
+    End Sub
+
+    Private Sub ButtonPress(ByVal o As System.Object, ByVal e As KeyEventArgs) Handles Me.KeyDown
+        If e.KeyCode = Keys.W Then
+            obj.pntPosition = New Point(obj.pntPosition.X, obj.pntPosition.Y - 5)
+            Refresh()
+        ElseIf e.KeyCode = Keys.S Then
+            obj.pntPosition = New Point(obj.pntPosition.X, obj.pntPosition.Y + 5)
+            Refresh()
+        ElseIf e.KeyCode = Keys.A Then
+            obj.pntPosition = New Point(obj.pntPosition.X - 5, obj.pntPosition.Y)
+            Refresh()
+        ElseIf e.KeyCode = Keys.D Then
+            obj.pntPosition = New Point(obj.pntPosition.X + 5, obj.pntPosition.Y)
+            Refresh()
+        End If
+
+    End Sub
+
+    'Main LAN Stuff vvv
+
     Private Sub Listening()  'starts listening for info from other com.
         listener.Start()
     End Sub
 
-    'Get info from other computers here.
-    Private Sub tmrListenerUpdate_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles tmrListenerUpdate.Tick
+    Private Sub tmrListenerUpdate_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles tmrListenerUpdate.Tick   'Get info from other computers here.
         Try
             If listener.Pending = True Then  'If a Computer wants to send something.
                 client = listener.AcceptTcpClient() 'Accepts the "message".
@@ -198,7 +234,7 @@ Public Class Form1
 
             client = New TcpClient(lstComputers(index).ToString, 5019)
 
-            Dim Writer as New StreamWriter(client.GetStream())
+            Dim Writer As New StreamWriter(client.GetStream())
             Writer.Write(chrStartProcessingText & name & chrAddComToConnectListEnd)
             Writer.Flush()
         Next

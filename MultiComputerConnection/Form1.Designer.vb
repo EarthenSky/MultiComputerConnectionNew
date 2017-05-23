@@ -32,14 +32,16 @@ Partial Class Form1
         Me.lblInfo2 = New System.Windows.Forms.Label()
         Me.tmrListenerUpdate = New System.Windows.Forms.Timer(Me.components)
         Me.btnConnect = New System.Windows.Forms.Button()
+        Me.pbxPlayArea = New System.Windows.Forms.PictureBox()
+        CType(Me.pbxPlayArea, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
         'lbxChatConsole
         '
         Me.lbxChatConsole.FormattingEnabled = True
-        Me.lbxChatConsole.Location = New System.Drawing.Point(12, 12)
+        Me.lbxChatConsole.Location = New System.Drawing.Point(253, 12)
         Me.lbxChatConsole.Name = "lbxChatConsole"
-        Me.lbxChatConsole.Size = New System.Drawing.Size(468, 277)
+        Me.lbxChatConsole.Size = New System.Drawing.Size(227, 277)
         Me.lbxChatConsole.TabIndex = 0
         '
         'btnUpdateChatConsole
@@ -111,12 +113,22 @@ Partial Class Form1
         Me.btnConnect.Text = "Connect To Computer"
         Me.btnConnect.UseVisualStyleBackColor = False
         '
+        'pbxPlayArea
+        '
+        Me.pbxPlayArea.BackColor = System.Drawing.Color.PeachPuff
+        Me.pbxPlayArea.Location = New System.Drawing.Point(13, 13)
+        Me.pbxPlayArea.Name = "pbxPlayArea"
+        Me.pbxPlayArea.Size = New System.Drawing.Size(234, 276)
+        Me.pbxPlayArea.TabIndex = 8
+        Me.pbxPlayArea.TabStop = False
+        '
         'Form1
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.Color.Linen
         Me.ClientSize = New System.Drawing.Size(674, 303)
+        Me.Controls.Add(Me.pbxPlayArea)
         Me.Controls.Add(Me.btnConnect)
         Me.Controls.Add(Me.lblInfo2)
         Me.Controls.Add(Me.lbxComputersConnectedTo)
@@ -128,6 +140,7 @@ Partial Class Form1
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
         Me.Name = "Form1"
         Me.Text = "MultiComputerConnection"
+        CType(Me.pbxPlayArea, System.ComponentModel.ISupportInitialize).EndInit()
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
@@ -141,5 +154,6 @@ Partial Class Form1
     Friend WithEvents lblInfo2 As System.Windows.Forms.Label
     Friend WithEvents tmrListenerUpdate As System.Windows.Forms.Timer
     Friend WithEvents btnConnect As System.Windows.Forms.Button
+    Friend WithEvents pbxPlayArea As System.Windows.Forms.PictureBox
 
 End Class
