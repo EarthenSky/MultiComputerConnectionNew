@@ -10,6 +10,10 @@ Public Enum Process
     AddComEnd
     GiveComs
     MessageEnd
+    ChangePos
+    SendFrom
+    PointGet
+    NumGet
 End Enum
 
 Public Class Form1
@@ -23,50 +27,79 @@ Public Class Form1
     Public Const chrGiveComs As Char = Chr(2)
     Public Const chrMessageEnd As Char = Chr(3)
 
-    Public Const chrMoveDirection As Char = Chr(4)
-    Public Const chrMoveNumber As Char = Chr(5)
+    Public Const chrChangePosition As Char = Chr(4) 'send character position
+    Public Const chrSendFrom As Char = Chr(5) 'person from
+    Public Const chrMakeNum As Char = Chr(6) 'makes a num value
 
     Private currentFileDirectory As String = Directory.GetCurrentDirectory.Remove(Directory.GetCurrentDirectory.IndexOf("\bin\Debug"), 10) + "\"
     Private imgEnemyOne As Image
-    Private imgBackground As Image
 
     Private listener As New TcpListener(5019)
     Private client As New TcpClient
 
     Private lstComputers As New List(Of String)
-    Public obj As OverDropObject
+    Public meObj As OverDropObject
+    Public otherObj As New List(Of OverDropObject)
 
     Private Sub Form1_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
-        imgBackground = Image.FromFile(currentFileDirectory & "Grid of tiles.png")
         imgEnemyOne = Image.FromFile(currentFileDirectory & "EnemyFOne.png")
 
-        obj = New OverDropObject(New Point(10, 10), imgEnemyOne)
+        meObj = New OverDropObject(New Point(0, 0), imgEnemyOne)
+
+        Me.KeyPreview = True
+
+        Debug.Print(New Point(8, 65).ToString)
 
         Dim ListenerThread As New Thread(New ThreadStart(AddressOf Listening))
         tbxConnectionComputerName.Text = My.Computer.Name
         ListenerThread.Start()
     End Sub
 
-    Sub PaintMain(ByVal o As Object, ByVal e As PaintEventArgs) Handles pbxPlayArea.Paint
-        e.Graphics.DrawImage(imgBackground, New Rectangle(100, 100, 100, 100))
-        e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.pntPosition.X, obj.pntPosition.Y, obj.imgMainImage.Width, obj.imgMainImage.Height))
+    Private Sub PaintMain(ByVal o As Object, ByVal e As PaintEventArgs) Handles pbxPlayArea.Paint
+        For Each obj As OverDropObject In otherObj
+            e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.pntPosition.X, obj.pntPosition.Y, obj.imgMainImage.Width / 2, obj.imgMainImage.Height / 2))
+        Next
+
+        e.Graphics.DrawImage(meObj.imgMainImage, New Rectangle(meObj.pntPosition.X, meObj.pntPosition.Y, meObj.imgMainImage.Width / 2, meObj.imgMainImage.Height / 2))
     End Sub
 
     Private Sub ButtonPress(ByVal o As System.Object, ByVal e As KeyEventArgs) Handles Me.KeyDown
         If e.KeyCode = Keys.W Then
-            obj.pntPosition = New Point(obj.pntPosition.X, obj.pntPosition.Y - 5)
+            GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.pntPosition.X, meObj.pntPosition.Y - 5)) 'send before do
+            meObj.pntPosition = New Point(meObj.pntPosition.X, meObj.pntPosition.Y - 5)
             Refresh()
         ElseIf e.KeyCode = Keys.S Then
-            obj.pntPosition = New Point(obj.pntPosition.X, obj.pntPosition.Y + 5)
+            GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.pntPosition.X, meObj.pntPosition.Y + 5)) 'send before do
+            meObj.pntPosition = New Point(meObj.pntPosition.X, meObj.pntPosition.Y + 5)
             Refresh()
         ElseIf e.KeyCode = Keys.A Then
-            obj.pntPosition = New Point(obj.pntPosition.X - 5, obj.pntPosition.Y)
+            GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.pntPosition.X - 5, meObj.pntPosition.Y)) 'send before do
+            meObj.pntPosition = New Point(meObj.pntPosition.X - 5, meObj.pntPosition.Y)
             Refresh()
         ElseIf e.KeyCode = Keys.D Then
-            obj.pntPosition = New Point(obj.pntPosition.X + 5, obj.pntPosition.Y)
+            GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.pntPosition.X + 5, meObj.pntPosition.Y)) 'send before do
+            meObj.pntPosition = New Point(meObj.pntPosition.X + 5, meObj.pntPosition.Y)
             Refresh()
         End If
 
+    End Sub
+
+    Private Sub GivePositionChangeToFriends(ByVal strName As String, ByVal pnt As Point)
+        'send my computers the name
+        For index As Short = 0 To lstComputers.Count - 1
+            If lstComputers(index).ToString = My.Computer.Name Then
+                Continue For  'Don't send it to my name
+            End If
+
+            client = New TcpClient(lstComputers(index).ToString, 5019)
+
+            Dim Writer As New StreamWriter(client.GetStream())
+            Writer.Write(chrStartProcessingText & strName & chrSendFrom &
+                         chrStartProcessingText & pnt.X.ToString & chrMakeNum &
+                         chrStartProcessingText & pnt.Y.ToString & chrMakeNum &
+                         chrChangePosition)
+            Writer.Flush()
+        Next
     End Sub
 
     'Main LAN Stuff vvv
@@ -91,15 +124,19 @@ Public Class Form1
     End Sub
 
     Private Sub ProcessInformation(ByRef client As System.Net.Sockets.TcpClient)
-        Dim shtInfo As String = ""
-
         Dim Reader As New StreamReader(client.GetStream())  'Start getting the other com info.
 
         Dim currentProcess As Process = Process.None 'Current thing to do with the recieved information.
 
+        Dim strPersonFrom As String = ""
+        Dim shtInfo As String = ""
+
+        Dim lstSht As New List(Of Short)
+
         While Reader.Peek > -1  'Changes each character sent into a string and adds it to the 
             Dim chrCurrent As Char = Convert.ToChar(Reader.Read())
-            Debug.Print("cahr " & chrCurrent)
+            Debug.Print("char " & chrCurrent)
+
             'Set process if needed
             If chrCurrent = chrStartProcessingText Then
                 currentProcess = Process.StringStart
@@ -114,6 +151,15 @@ Public Class Form1
             ElseIf chrCurrent = chrMessageEnd Then
                 currentProcess = Process.MessageEnd
 
+            ElseIf chrCurrent = chrChangePosition Then
+                currentProcess = Process.ChangePos
+
+            ElseIf chrCurrent = chrSendFrom Then
+                currentProcess = Process.SendFrom
+
+            ElseIf chrCurrent = chrMakeNum Then
+                currentProcess = Process.NumGet
+
             End If
 
             If currentProcess = Process.StringStart Then 'Adds chars to be proccessed
@@ -122,20 +168,18 @@ Public Class Form1
             ElseIf currentProcess = Process.AddComEnd Then  'this is inefficient cause all coms have to give anmes and it repeats.
                 Debug.Print(" Almost Got Computer : " & shtInfo)
                 If lstComputers.Contains(shtInfo) = False And shtInfo <> My.Computer.Name Then
-                    lstComputers.Add(shtInfo)
-                    lbxComputersConnectedTo.Items.Add(shtInfo)
+
+                    AddComputerToList(shtInfo)
 
                     Debug.Print(" Got Computer : " & shtInfo)
 
-                    'Don't need this, maybe breaking it?
-                    'Dim Writer As New StreamWriter(client.GetStream())
-                    'GiveComNamesToFriends(Writer, shtInfo)
+                    'Don't need this, maybe breaking it?  think i do need it
+                    GiveComNamesToFriends(shtInfo)
 
                 End If
                 shtInfo = String.Empty
 
             ElseIf currentProcess = Process.GiveComs Then 'Other computer tells it's name, this computer gives any other names to that com.
-
                 Debug.Print(" Was Given : " & shtInfo)
 
                 If lstComputers.Count <> 0 Then 'If lstComputers has items in it, send them
@@ -149,12 +193,24 @@ Public Class Form1
 
                 End If
                 'then adds
-                lstComputers.Add(shtInfo)
-                lbxComputersConnectedTo.Items.Add(shtInfo)
+                AddComputerToList(shtInfo)
                 shtInfo = String.Empty
 
             ElseIf currentProcess = Process.MessageEnd Then
                 lbxChatConsole.Items.Add(shtInfo.ToString())
+                shtInfo = String.Empty
+
+            ElseIf currentProcess = Process.ChangePos Then  '0 is X, 1 is Y
+                otherObj(lstComputers.IndexOf(strPersonFrom)).pntPosition = New Point(lstSht(0), lstSht(1))
+                Refresh()
+                shtInfo = String.Empty
+
+            ElseIf currentProcess = Process.SendFrom Then
+                strPersonFrom = shtInfo
+                shtInfo = String.Empty
+
+            ElseIf currentProcess = Process.NumGet Then
+                lstSht.Add(Val(shtInfo))
                 shtInfo = String.Empty
 
             Else
@@ -221,8 +277,7 @@ Public Class Form1
         'Give my friends it's name
         GiveComNamesToFriends(tbxConnectionComputerName.Text)
 
-        lstComputers.Add(tbxConnectionComputerName.Text)
-        lbxComputersConnectedTo.Items.Add(tbxConnectionComputerName.Text)
+        AddComputerToList(tbxConnectionComputerName.Text)
     End Sub
 
     Private Sub GiveComNamesToFriends(ByVal name As String)
@@ -238,6 +293,12 @@ Public Class Form1
             Writer.Write(chrStartProcessingText & name & chrAddComToConnectListEnd)
             Writer.Flush()
         Next
+    End Sub
+
+    Private Sub AddComputerToList(ByVal strName As String)
+        otherObj.Add(New OverDropObject(New Point(0, 0), imgEnemyOne))
+        lstComputers.Add(strName)
+        lbxComputersConnectedTo.Items.Add(strName)
     End Sub
 
 End Class
