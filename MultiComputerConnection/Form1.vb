@@ -48,8 +48,6 @@ Public Class Form1
 
         Me.KeyPreview = True
 
-        Debug.Print(New Point(8, 65).ToString)
-
         Dim ListenerThread As New Thread(New ThreadStart(AddressOf Listening))
         tbxConnectionComputerName.Text = My.Computer.Name
         ListenerThread.Start()
@@ -168,13 +166,11 @@ Public Class Form1
             ElseIf currentProcess = Process.AddComEnd Then  'this is inefficient cause all coms have to give anmes and it repeats.
                 Debug.Print(" Almost Got Computer : " & shtInfo)
                 If lstComputers.Contains(shtInfo) = False And shtInfo <> My.Computer.Name Then
-
-                    AddComputerToList(shtInfo)
-
-                    Debug.Print(" Got Computer : " & shtInfo)
-
                     'Don't need this, maybe breaking it?  think i do need it
                     GiveComNamesToFriends(shtInfo)
+
+                    AddComputerToList(shtInfo)
+                    Debug.Print(" Got Computer : " & shtInfo)
 
                 End If
                 shtInfo = String.Empty
@@ -183,17 +179,25 @@ Public Class Form1
                 Debug.Print(" Was Given : " & shtInfo)
 
                 If lstComputers.Count <> 0 Then 'If lstComputers has items in it, send them
-                    client = New TcpClient(shtInfo, 5019)
-                    Dim Writer As New StreamWriter(client.GetStream())
+                    Dim Writer As StreamWriter
 
                     For index As Short = 0 To lstComputers.Count - 1
+                        client = New TcpClient(shtInfo, 5019)
+                        Writer = New StreamWriter(client.GetStream())
                         Writer.Write(chrStartProcessingText & lstComputers(index).ToString() & chrAddComToConnectListEnd)
                         Writer.Flush()
                     Next
 
                 End If
-                'then adds
-                AddComputerToList(shtInfo)
+
+                If lstComputers.Contains(shtInfo) = False And shtInfo <> My.Computer.Name Then
+                    'then adds
+                    AddComputerToList(shtInfo)
+
+                    'Don't need this, maybe breaking it?  think i do need it
+                    GiveComNamesToFriends(shtInfo)
+                End If
+
                 shtInfo = String.Empty
 
             ElseIf currentProcess = Process.MessageEnd Then
@@ -255,7 +259,6 @@ Public Class Form1
 
         'Send my name and ask for it's computers
         client = New TcpClient(tbxConnectionComputerName.Text, 5019)
-
         Dim Writer As New StreamWriter(client.GetStream())
         Writer.Write(chrStartProcessingText & My.Computer.Name & chrGiveComs)
         Writer.Flush()
@@ -296,7 +299,7 @@ Public Class Form1
     End Sub
 
     Private Sub AddComputerToList(ByVal strName As String)
-        otherObj.Add(New OverDropObject(New Point(0, 0), imgEnemyOne))
+        otherObj.Add(New OverDropObject(New Point(0, 0), imgEnemyOne))  'Adds a new character to the screen
         lstComputers.Add(strName)
         lbxComputersConnectedTo.Items.Add(strName)
     End Sub
