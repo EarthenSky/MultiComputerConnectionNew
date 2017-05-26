@@ -116,8 +116,8 @@ Public Class Form1
             End If
         Catch ex As Exception
             Console.WriteLine(ex)
-            Dim Errorresult As String = ex.Message
-            MessageBox.Show(Errorresult & vbCrLf & vbCrLf & "???", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            'Dim Errorresult As String = ex.Message
+            'MessageBox.Show(Errorresult & vbCrLf & vbCrLf & "???", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
@@ -235,8 +235,8 @@ Public Class Form1
             tbxMessageToSend.Text = "Sent!"
         Catch ex As Exception
             Console.WriteLine(ex)
-            Dim Errorresult As String = ex.Message
-            MessageBox.Show(Errorresult & vbCrLf & vbCrLf & "Please Review Client Address", "Error Sending Message", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            'Dim Errorresult As String = ex.Message
+            'MessageBox.Show(Errorresult & vbCrLf & vbCrLf & "Please Review Client Address", "Error Sending Message", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
@@ -284,18 +284,24 @@ Public Class Form1
     End Sub
 
     Private Sub GiveComNamesToFriends(ByVal name As String)
-        'send my computers the name
-        For index As Short = 0 To lstComputers.Count - 1
-            If lstComputers(index).ToString = My.Computer.Name Then
-                Continue For  'Don't send it to my name
-            End If
+        Try
+            'send my computers the name
+            For index As Short = 0 To lstComputers.Count - 1
+                If lstComputers(index).ToString = My.Computer.Name Then
+                    Continue For  'Don't send it to my name
+                End If
 
-            client = New TcpClient(lstComputers(index).ToString, 5019)
+                client = New TcpClient(lstComputers(index).ToString, 5019)
 
-            Dim Writer As New StreamWriter(client.GetStream())
-            Writer.Write(chrStartProcessingText & name & chrAddComToConnectListEnd)
-            Writer.Flush()
-        Next
+                Dim Writer As New StreamWriter(client.GetStream())
+                Writer.Write(chrStartProcessingText & name & chrAddComToConnectListEnd)
+                Writer.Flush()
+            Next
+        Catch ex As Exception
+            Console.WriteLine(ex)
+            'Dim Errorresult As String = ex.Message
+            'MessageBox.Show(Errorresult & vbCrLf & vbCrLf & "Please Review Client Address", "Error Sending Message", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
     End Sub
 
     Private Sub AddComputerToList(ByVal strName As String)
