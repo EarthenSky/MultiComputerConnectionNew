@@ -33,6 +33,7 @@ Partial Class Form1
         Me.tmrListenerUpdate = New System.Windows.Forms.Timer(Me.components)
         Me.btnConnect = New System.Windows.Forms.Button()
         Me.pbxPlayArea = New System.Windows.Forms.PictureBox()
+        Me.tmrGameUpdate = New System.Windows.Forms.Timer(Me.components)
         CType(Me.pbxPlayArea, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
@@ -123,6 +124,9 @@ Partial Class Form1
         Me.pbxPlayArea.TabIndex = 8
         Me.pbxPlayArea.TabStop = False
         '
+        'tmrGameUpdate
+        '
+        '
         'Form1
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -156,5 +160,6 @@ Partial Class Form1
     Friend WithEvents tmrListenerUpdate As System.Windows.Forms.Timer
     Friend WithEvents btnConnect As System.Windows.Forms.Button
     Friend WithEvents pbxPlayArea As System.Windows.Forms.PictureBox
+    Friend WithEvents tmrGameUpdate As System.Windows.Forms.Timer
 
 End Class

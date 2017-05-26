@@ -41,6 +41,9 @@ Public Class Form1
     Public meObj As OverDropObject
     Public otherObj As New List(Of OverDropObject)
 
+    Public pnt1 As New Point(80, 50)
+    Public pnt2 As New Point(30, 120)
+
     Private Sub Form1_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
         imgEnemyOne = Image.FromFile(currentFileDirectory & "EnemyFOne.png")
 
@@ -55,28 +58,28 @@ Public Class Form1
 
     Private Sub PaintMain(ByVal o As Object, ByVal e As PaintEventArgs) Handles pbxPlayArea.Paint
         For Each obj As OverDropObject In otherObj
-            e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.pntPosition.X, obj.pntPosition.Y, obj.imgMainImage.Width / 2, obj.imgMainImage.Height / 2))
+            e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.GetMainPoint().pnt.X, obj.GetMainPoint().pnt.Y, obj.imgMainImage.Width / 2, obj.imgMainImage.Height / 2))
         Next
 
-        e.Graphics.DrawImage(meObj.imgMainImage, New Rectangle(meObj.pntPosition.X, meObj.pntPosition.Y, meObj.imgMainImage.Width / 2, meObj.imgMainImage.Height / 2))
+        e.Graphics.DrawImage(meObj.imgMainImage, New Rectangle(meObj.GetMainPoint().pnt.X, meObj.GetMainPoint().pnt.Y, meObj.imgMainImage.Width / 2, meObj.imgMainImage.Height / 2))
     End Sub
 
     Private Sub ButtonPress(ByVal o As System.Object, ByVal e As KeyEventArgs) Handles Me.KeyDown
         If e.KeyCode = Keys.W Then
-            GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.pntPosition.X, meObj.pntPosition.Y - 5)) 'send before do
-            meObj.pntPosition = New Point(meObj.pntPosition.X, meObj.pntPosition.Y - 5)
+            GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.GetMainPoint().pnt.X, meObj.GetMainPoint().pnt.Y - 5)) 'send before do
+            meObj.SetMainPoint(New Point(meObj.GetMainPoint().pnt.X, meObj.GetMainPoint().pnt.Y - 5))
             Refresh()
         ElseIf e.KeyCode = Keys.S Then
-            GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.pntPosition.X, meObj.pntPosition.Y + 5)) 'send before do
-            meObj.pntPosition = New Point(meObj.pntPosition.X, meObj.pntPosition.Y + 5)
+            GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.GetMainPoint().pnt.X, meObj.GetMainPoint().pnt.Y + 5)) 'send before do
+            meObj.SetMainPoint(New Point(meObj.GetMainPoint().pnt.X, meObj.GetMainPoint().pnt.Y + 5))
             Refresh()
         ElseIf e.KeyCode = Keys.A Then
-            GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.pntPosition.X - 5, meObj.pntPosition.Y)) 'send before do
-            meObj.pntPosition = New Point(meObj.pntPosition.X - 5, meObj.pntPosition.Y)
+            GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.GetMainPoint().pnt.X - 5, meObj.GetMainPoint().pnt.Y)) 'send before do
+            meObj.SetMainPoint(New Point(meObj.GetMainPoint().pnt.X - 5, meObj.GetMainPoint().pnt.Y))
             Refresh()
         ElseIf e.KeyCode = Keys.D Then
-            GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.pntPosition.X + 5, meObj.pntPosition.Y)) 'send before do
-            meObj.pntPosition = New Point(meObj.pntPosition.X + 5, meObj.pntPosition.Y)
+            GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.GetMainPoint().pnt.X + 5, meObj.GetMainPoint().pnt.Y)) 'send before do
+            meObj.SetMainPoint(New Point(meObj.GetMainPoint().pnt.X + 5, meObj.GetMainPoint().pnt.Y))
             Refresh()
         End If
 
@@ -98,6 +101,37 @@ Public Class Form1
                          chrChangePosition)
             Writer.Flush()
         Next
+    End Sub
+
+    'Start Internet
+    Function sqr(ByVal x)
+        Return x * x
+    End Function
+
+    Function DistanceSquared(ByVal v, ByVal w)
+        Return sqr(v.X - w.x) + sqr(v.Y - w.y)
+    End Function
+
+    Function DistanceToSegmentSquared(ByVal p, ByVal v, ByVal w)
+        Dim l2 = DistanceSquared(v, w)
+        If l2 = 0 Then
+            Return DistanceSquared(p, v)
+        End If
+
+        Dim t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2
+        t = Math.Max(0, Math.Min(1, t))
+        Return DistanceSquared(p, New Point(v.x + t * (w.x - v.x), v.y + t * (w.y - v.y)))
+    End Function
+
+    Function DistanceToSegment(ByVal p, ByVal v, ByVal w)
+        Return Math.Sqrt(DistanceToSegmentSquared(p, v, w))
+    End Function
+    'End Internet
+
+    Private Sub tmrGameUpdate_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles tmrGameUpdate.Tick
+        If DistanceToSegment(meObj, pnt1, pnt2) > meObj.GetMainPoint().sngRadius Then
+            'MessageBox.Show("collider with wall")
+        End If
     End Sub
 
     'Main LAN Stuff vvv
@@ -205,7 +239,7 @@ Public Class Form1
                 shtInfo = String.Empty
 
             ElseIf currentProcess = Process.ChangePos Then  '0 is X, 1 is Y
-                otherObj(lstComputers.IndexOf(strPersonFrom)).pntPosition = New Point(lstSht(0), lstSht(1))
+                otherObj(lstComputers.IndexOf(strPersonFrom)).SetMainPoint(New Point(lstSht(0), lstSht(1)))
                 Refresh()
                 shtInfo = String.Empty
 
@@ -232,7 +266,7 @@ Public Class Form1
             lbxChatConsole.Items.Add(tbxMessageToSend.Text)
             lbxChatConsole.Items.Add(My.Computer.Name)
 
-            tbxMessageToSend.Text = "Sent!"
+            Me.tbxMessageToSend.Text = "Sent!"
         Catch ex As Exception
             Console.WriteLine(ex)
             'Dim Errorresult As String = ex.Message
@@ -310,4 +344,5 @@ Public Class Form1
         lbxComputersConnectedTo.Items.Add(strName)
     End Sub
 
+   
 End Class
