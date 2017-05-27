@@ -13,7 +13,7 @@
 End Structure
 
 Public Class OverDropObject
-    Public lstPointPosition As List(Of CircleBox) 'Holds all of the circles.
+    Public lstPointPosition As New List(Of CircleBox) 'Holds all of the circles.
     Public imgMainImage As Image
 
     Sub New(ByVal pnt As Point, ByVal img As Image)
