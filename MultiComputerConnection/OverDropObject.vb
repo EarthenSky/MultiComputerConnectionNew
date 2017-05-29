@@ -1,11 +1,11 @@
 ﻿Public Structure CircleBox
-    Sub New(ByVal pnt As Point, ByVal sngRadius As Single)
-        Me.pnt = pnt
-        Me.sngRadius = sngRadius
+    Sub New(ByVal pntTemp As Point, ByVal sngRadiusTemp As Single)
+        pnt = pntTemp
+        sngRadius = sngRadiusTemp
     End Sub
 
-    Public Sub SetPoint(ByVal pnt As Point)
-        Me.pnt = pnt
+    Public Sub SetPoint(ByVal pntTemp As Point)
+        pnt = pntTemp
     End Sub
 
     Public pnt As Point

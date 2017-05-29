@@ -67,7 +67,7 @@ Public Class Form1
     Private Sub ButtonPress(ByVal o As System.Object, ByVal e As KeyEventArgs) Handles Me.KeyDown
         If e.KeyCode = Keys.W Then
             GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.GetMainPoint().pnt.X, meObj.GetMainPoint().pnt.Y - 5)) 'send before do
-            meObj.SetMainPoint(New Point(meObj.GetMainPoint().pnt.X, meObj.GetMainPoint().pnt.Y - 5))
+            meObj.lstPointPosition(0).SetPoint(New Point(meObj.GetMainPoint().pnt.X, meObj.GetMainPoint().pnt.Y - 5))
             Refresh()
         ElseIf e.KeyCode = Keys.S Then
             GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.GetMainPoint().pnt.X, meObj.GetMainPoint().pnt.Y + 5)) 'send before do
@@ -344,5 +344,4 @@ Public Class Form1
         lbxComputersConnectedTo.Items.Add(strName)
     End Sub
 
-   
 End Class
