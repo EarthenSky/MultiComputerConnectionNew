@@ -4,10 +4,6 @@
         sngRadius = sngRadiusTemp
     End Sub
 
-    Public Sub SetPoint(ByVal pntTemp As Point)
-        pnt = pntTemp
-    End Sub
-
     Public pnt As Point
     Public sngRadius As Single
 End Structure
@@ -30,6 +26,6 @@ Public Class OverDropObject
     End Function
 
     Public Sub SetMainPoint(ByVal pnt As Point)
-        lstPointPosition(0).SetPoint(pnt)
+        lstPointPosition(0) = New CircleBox(pnt, lstPointPosition(0).sngRadius)
     End Sub
 End Class

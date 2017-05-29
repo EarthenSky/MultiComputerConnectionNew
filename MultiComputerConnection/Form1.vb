@@ -39,7 +39,9 @@ Public Class Form1
 
     Private lstComputers As New List(Of String)
     Public meObj As OverDropObject
-    Public otherObj As New List(Of OverDropObject)
+    Public otherComObj As New List(Of OverDropObject)
+
+    Public lstAnimationObjects As New List(Of AnimationObject)
 
     Public pnt1 As New Point(80, 50)
     Public pnt2 As New Point(30, 120)
@@ -48,6 +50,8 @@ Public Class Form1
         imgEnemyOne = Image.FromFile(currentFileDirectory & "EnemyFOne.png")
 
         meObj = New OverDropObject(New Point(0, 0), imgEnemyOne)
+        lstAnimationObjects.Add(New AnimationObject(New Point(50, 50), Image.FromFile(currentFileDirectory & "BugOne_MiniEnemy_SpriteSheet.png"), 100))
+        lstAnimationObjects(0).PlayAnimation(0)
 
         Me.KeyPreview = True
 
@@ -57,8 +61,12 @@ Public Class Form1
     End Sub
 
     Private Sub PaintMain(ByVal o As Object, ByVal e As PaintEventArgs) Handles pbxPlayArea.Paint
-        For Each obj As OverDropObject In otherObj
+        For Each obj As OverDropObject In otherComObj 'Draws other Computer controlled objects
             e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.GetMainPoint().pnt.X, obj.GetMainPoint().pnt.Y, obj.imgMainImage.Width / 2, obj.imgMainImage.Height / 2))
+        Next
+
+        For Each obj As AnimationObject In lstAnimationObjects 'Draws animations
+            e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.GetMainPoint().pnt.X, obj.GetMainPoint().pnt.Y, 256, 256), obj.lstAnimations(obj.pntCurrentImgIndexes.X)(obj.pntCurrentImgIndexes.Y), System.Drawing.GraphicsUnit.Pixel)
         Next
 
         e.Graphics.DrawImage(meObj.imgMainImage, New Rectangle(meObj.GetMainPoint().pnt.X, meObj.GetMainPoint().pnt.Y, meObj.imgMainImage.Width / 2, meObj.imgMainImage.Height / 2))
@@ -67,7 +75,7 @@ Public Class Form1
     Private Sub ButtonPress(ByVal o As System.Object, ByVal e As KeyEventArgs) Handles Me.KeyDown
         If e.KeyCode = Keys.W Then
             GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.GetMainPoint().pnt.X, meObj.GetMainPoint().pnt.Y - 5)) 'send before do
-            meObj.lstPointPosition(0).SetPoint(New Point(meObj.GetMainPoint().pnt.X, meObj.GetMainPoint().pnt.Y - 5))
+            meObj.SetMainPoint(New Point(meObj.GetMainPoint().pnt.X, meObj.GetMainPoint().pnt.Y - 5))
             Refresh()
         ElseIf e.KeyCode = Keys.S Then
             GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.GetMainPoint().pnt.X, meObj.GetMainPoint().pnt.Y + 5)) 'send before do
@@ -104,23 +112,23 @@ Public Class Form1
     End Sub
 
     'Start Internet
-    Function sqr(ByVal x)
+    Function sqr(ByVal x) As Integer
         Return x * x
     End Function
 
-    Function DistanceSquared(ByVal v, ByVal w)
-        Return sqr(v.X - w.x) + sqr(v.Y - w.y)
+    Function DistanceSquared(ByVal v As Point, ByVal w As Point) As Integer
+        Return sqr(v.X - w.X) + sqr(v.Y - w.Y)
     End Function
 
-    Function DistanceToSegmentSquared(ByVal p, ByVal v, ByVal w)
+    Function DistanceToSegmentSquared(ByVal p As Point, ByVal v As Point, ByVal w As Point) As Integer
         Dim l2 = DistanceSquared(v, w)
         If l2 = 0 Then
             Return DistanceSquared(p, v)
         End If
 
-        Dim t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2
+        Dim t = ((p.X - v.X) * (w.X - v.X) + (p.Y - v.Y) * (w.Y - v.Y)) / l2
         t = Math.Max(0, Math.Min(1, t))
-        Return DistanceSquared(p, New Point(v.x + t * (w.x - v.x), v.y + t * (w.y - v.y)))
+        Return DistanceSquared(p, New Point(v.X + t * (w.X - v.X), v.Y + t * (w.Y - v.Y)))
     End Function
 
     Function DistanceToSegment(ByVal p, ByVal v, ByVal w)
@@ -129,9 +137,13 @@ Public Class Form1
     'End Internet
 
     Private Sub tmrGameUpdate_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles tmrGameUpdate.Tick
-        If DistanceToSegment(meObj, pnt1, pnt2) > meObj.GetMainPoint().sngRadius Then
-            'MessageBox.Show("collider with wall")
+        Dim int As Integer = DistanceToSegment(meObj.GetMainPoint().pnt, pnt1, pnt2)
+        Debug.Print(int.ToString & " is Distance")
+        If DistanceToSegment(meObj.GetMainPoint().pnt, pnt1, pnt2) < meObj.GetMainPoint().sngRadius Then
+            MessageBox.Show("collided with wall")
         End If
+
+        Refresh()
     End Sub
 
     'Main LAN Stuff vvv
@@ -239,7 +251,7 @@ Public Class Form1
                 shtInfo = String.Empty
 
             ElseIf currentProcess = Process.ChangePos Then  '0 is X, 1 is Y
-                otherObj(lstComputers.IndexOf(strPersonFrom)).SetMainPoint(New Point(lstSht(0), lstSht(1)))
+                otherComObj(lstComputers.IndexOf(strPersonFrom)).SetMainPoint(New Point(lstSht(0), lstSht(1)))
                 Refresh()
                 shtInfo = String.Empty
 
@@ -339,7 +351,7 @@ Public Class Form1
     End Sub
 
     Private Sub AddComputerToList(ByVal strName As String)
-        otherObj.Add(New OverDropObject(New Point(0, 0), imgEnemyOne))  'Adds a new character to the screen
+        otherComObj.Add(New OverDropObject(New Point(0, 0), imgEnemyOne))  'Adds a new character to the screen
         lstComputers.Add(strName)
         lbxComputersConnectedTo.Items.Add(strName)
     End Sub
