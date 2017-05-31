@@ -44,8 +44,8 @@ Public Class Form1
 
     Public lstAnimationObjects As New List(Of AnimationObject)
 
-    Public pnt1 As New Point(0, 256)
-    Public pnt2 As New Point(256, 256)
+    Public pnt1 As New Point(0, 500)
+    Public pnt2 As New Point(245, 200)
 
     Private Sub Form1_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
         imgEnemyOne = Image.FromFile(currentFileDirectory & "EnemyFOne.png")
@@ -150,18 +150,35 @@ Public Class Form1
     End Function
     'End Internet
 
+    'Start Internet2
+    Function FindAngle(ByVal l11 As Point, ByVal l12 As Point, ByVal l21 As Point, ByVal l22 As Point) As Single
+        Return (Math.Atan2(l12.Y - l11.Y, l12.X - l11.X) - Math.Atan2(l22.Y - l21.Y, l22.X - l21.X)) '* (180 / Math.PI)
+    End Function
+
+    Function FindDistance(ByVal pnt1 As Point, ByVal pnt2 As Point) As Single
+        Return Math.Sqrt(sqr(pnt2.X - pnt1.X) + sqr(pnt2.Y - pnt1.Y))
+    End Function
+    'End Internet2
+
     Private Sub tmrGameUpdate_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles tmrGameUpdate.Tick
         Dim int As Integer = DistanceToSegment(meObj.GetMainPointMiddle().pnt, pnt1, pnt2)
         Debug.Print(int.ToString & " is Distance")
         If DistanceToSegment(meObj.GetMainPointMiddle().pnt, pnt1, pnt2) < meObj.GetMainPointMiddle().sngRadius Then
-            MessageBox.Show("collided with wall")
+            Dim xMove, yMove As Short
+
+            Dim bAngle As Single = 90 - Math.Abs(FindAngle(pnt1, pnt2, meObj.GetMainPointMiddle().pnt, pnt2))
+
+            Dim nSide As Single = FindDistance(meObj.GetMainPointMiddle().pnt, pnt2)
+
+            Dim lLength As Single = meObj.GetMainPointMiddle().sngRadius - nSide
+
+            meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X + xMove, meObj.GetDrawPoint().Y + yMove))
         End If
 
         Refresh()
     End Sub
 
     'Main LAN Stuff vvv
-
     Private Sub Listening()  'starts listening for info from other com.
         listener.Start()
     End Sub
