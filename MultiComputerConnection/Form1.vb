@@ -33,6 +33,7 @@ Public Class Form1
 
     Private currentFileDirectory As String = Directory.GetCurrentDirectory.Remove(Directory.GetCurrentDirectory.IndexOf("\bin\Debug"), 10) + "\"
     Private imgEnemyOne As Image
+    Private imgEnemyTwo As Image
 
     Private listener As New TcpListener(5019)
     Private client As New TcpClient
@@ -43,15 +44,15 @@ Public Class Form1
 
     Public lstAnimationObjects As New List(Of AnimationObject)
 
-    Public pnt1 As New Point(80, 50)
-    Public pnt2 As New Point(30, 120)
+    Public pnt1 As New Point(0, 256)
+    Public pnt2 As New Point(256, 256)
 
     Private Sub Form1_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
         imgEnemyOne = Image.FromFile(currentFileDirectory & "EnemyFOne.png")
+        imgEnemyTwo = Image.FromFile(currentFileDirectory & "BugOne_MiniEnemy_SpriteSheet.png")
 
         meObj = New OverDropObject(New Point(0, 0), imgEnemyOne)
-        lstAnimationObjects.Add(New AnimationObject(New Point(50, 50), Image.FromFile(currentFileDirectory & "BugOne_MiniEnemy_SpriteSheet.png"), 100))
-        lstAnimationObjects(0).PlayAnimation(0)
+        lstAnimationObjects.Add(New AnimationObject(New Point(0, 0), imgEnemyTwo, 100))
 
         Me.KeyPreview = True
 
@@ -62,33 +63,46 @@ Public Class Form1
 
     Private Sub PaintMain(ByVal o As Object, ByVal e As PaintEventArgs) Handles pbxPlayArea.Paint
         For Each obj As OverDropObject In otherComObj 'Draws other Computer controlled objects
-            e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.GetMainPoint().pnt.X, obj.GetMainPoint().pnt.Y, obj.imgMainImage.Width / 2, obj.imgMainImage.Height / 2))
+            e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.GetDrawPoint().X, obj.GetDrawPoint().Y, obj.imgMainImage.Width / 2, obj.imgMainImage.Height / 2))
         Next
 
         For Each obj As AnimationObject In lstAnimationObjects 'Draws animations
-            e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.GetMainPoint().pnt.X, obj.GetMainPoint().pnt.Y, 256, 256), obj.lstAnimations(obj.pntCurrentImgIndexes.X)(obj.pntCurrentImgIndexes.Y), System.Drawing.GraphicsUnit.Pixel)
+            If obj.pntCurrentImgIndexes.X <> -1 Then
+                e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.GetMainPoint().pnt.X, obj.GetMainPoint().pnt.Y, 256, 256),
+                                     obj.lstAnimations(obj.pntCurrentImgIndexes.X)(obj.pntCurrentImgIndexes.Y), System.Drawing.GraphicsUnit.Pixel)
+            Else
+                e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.GetMainPoint().pnt.X, obj.GetMainPoint().pnt.Y, 256, 256),
+                                     obj.lstAnimations(0)(0), System.Drawing.GraphicsUnit.Pixel)
+            End If
         Next
 
-        e.Graphics.DrawImage(meObj.imgMainImage, New Rectangle(meObj.GetMainPoint().pnt.X, meObj.GetMainPoint().pnt.Y, meObj.imgMainImage.Width / 2, meObj.imgMainImage.Height / 2))
+        e.Graphics.DrawImage(imgEnemyTwo, New Rectangle(meObj.GetDrawPoint().X, meObj.GetDrawPoint().Y, meObj.imgMainImage.Width / 2, meObj.imgMainImage.Height / 2))
+        Debug.Print(meObj.GetMainPointMiddle().pnt.ToString & ", hey this is pos")
     End Sub
 
     Private Sub ButtonPress(ByVal o As System.Object, ByVal e As KeyEventArgs) Handles Me.KeyDown
         If e.KeyCode = Keys.W Then
-            GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.GetMainPoint().pnt.X, meObj.GetMainPoint().pnt.Y - 5)) 'send before do
-            meObj.SetMainPoint(New Point(meObj.GetMainPoint().pnt.X, meObj.GetMainPoint().pnt.Y - 5))
+            GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.GetDrawPoint().X, meObj.GetDrawPoint().Y - 5)) 'send before do
+            meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X, meObj.GetDrawPoint().Y - 5))
             Refresh()
         ElseIf e.KeyCode = Keys.S Then
-            GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.GetMainPoint().pnt.X, meObj.GetMainPoint().pnt.Y + 5)) 'send before do
-            meObj.SetMainPoint(New Point(meObj.GetMainPoint().pnt.X, meObj.GetMainPoint().pnt.Y + 5))
+            GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.GetDrawPoint().X, meObj.GetDrawPoint().Y + 5)) 'send before do
+            meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X, meObj.GetDrawPoint().Y + 5))
             Refresh()
         ElseIf e.KeyCode = Keys.A Then
-            GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.GetMainPoint().pnt.X - 5, meObj.GetMainPoint().pnt.Y)) 'send before do
-            meObj.SetMainPoint(New Point(meObj.GetMainPoint().pnt.X - 5, meObj.GetMainPoint().pnt.Y))
+            GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.GetDrawPoint().X - 5, meObj.GetDrawPoint().Y)) 'send before do
+            meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X - 5, meObj.GetDrawPoint().Y))
             Refresh()
         ElseIf e.KeyCode = Keys.D Then
-            GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.GetMainPoint().pnt.X + 5, meObj.GetMainPoint().pnt.Y)) 'send before do
-            meObj.SetMainPoint(New Point(meObj.GetMainPoint().pnt.X + 5, meObj.GetMainPoint().pnt.Y))
+            GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.GetDrawPoint().X + 5, meObj.GetDrawPoint().Y)) 'send before do
+            meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X + 5, meObj.GetDrawPoint().Y))
             Refresh()
+        ElseIf e.KeyCode = Keys.E Then
+            lstAnimationObjects(0).PlayAnimation(1)
+        ElseIf e.KeyCode = Keys.Up Then
+            lstAnimationObjects(0).PlayAnimation(0)
+        ElseIf e.KeyCode = Keys.T Then
+            lstAnimationObjects(0).StopAnimation()
         End If
 
     End Sub
@@ -131,15 +145,15 @@ Public Class Form1
         Return DistanceSquared(p, New Point(v.X + t * (w.X - v.X), v.Y + t * (w.Y - v.Y)))
     End Function
 
-    Function DistanceToSegment(ByVal p, ByVal v, ByVal w)
+    Function DistanceToSegment(ByVal p As Point, ByVal v As Point, ByVal w As Point)
         Return Math.Sqrt(DistanceToSegmentSquared(p, v, w))
     End Function
     'End Internet
 
     Private Sub tmrGameUpdate_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles tmrGameUpdate.Tick
-        Dim int As Integer = DistanceToSegment(meObj.GetMainPoint().pnt, pnt1, pnt2)
+        Dim int As Integer = DistanceToSegment(meObj.GetMainPointMiddle().pnt, pnt1, pnt2)
         Debug.Print(int.ToString & " is Distance")
-        If DistanceToSegment(meObj.GetMainPoint().pnt, pnt1, pnt2) < meObj.GetMainPoint().sngRadius Then
+        If DistanceToSegment(meObj.GetMainPointMiddle().pnt, pnt1, pnt2) < meObj.GetMainPointMiddle().sngRadius Then
             MessageBox.Show("collided with wall")
         End If
 
