@@ -13,7 +13,7 @@ Public Class OverDropObject
     Public imgMainImage As Image
 
     Sub New(ByVal pnt As Point, ByVal img As Image)
-        lstPointPosition.Add(New CircleBox(pnt, 5)) 'TODO: this presets radius to 1
+        lstPointPosition.Add(New CircleBox(pnt, 128)) 'TODO: this presets radius to 1
         imgMainImage = img
     End Sub
 

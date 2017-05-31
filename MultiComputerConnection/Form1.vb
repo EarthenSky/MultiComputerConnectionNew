@@ -44,7 +44,7 @@ Public Class Form1
 
     Public lstAnimationObjects As New List(Of AnimationObject)
 
-    Public pnt1 As New Point(0, 500)
+    Public pnt1 As New Point(0, 1000)
     Public pnt2 As New Point(245, 200)
 
     Private Sub Form1_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
@@ -165,12 +165,14 @@ Public Class Form1
         Debug.Print(int.ToString & " is Distance")
         If DistanceToSegment(meObj.GetMainPointMiddle().pnt, pnt1, pnt2) < meObj.GetMainPointMiddle().sngRadius Then
             Dim xMove, yMove As Short
-
-            Dim bAngle As Single = 90 - Math.Abs(FindAngle(pnt1, pnt2, meObj.GetMainPointMiddle().pnt, pnt2))
-
-            Dim nSide As Single = FindDistance(meObj.GetMainPointMiddle().pnt, pnt2)
-
+            'Works
+            Dim bAngle As Single = 1.5708 - Math.Abs(FindAngle(pnt1, pnt2, meObj.GetMainPointMiddle().pnt, pnt2))
+            'Works
+            Dim nSide As Single = Math.Cos(bAngle) * FindDistance(meObj.GetMainPointMiddle().pnt, pnt2)
+            'Works
             Dim lLength As Single = meObj.GetMainPointMiddle().sngRadius - nSide
+
+            Dim pSide As Single = Math.Tan(bAngle) * FindDistance(meObj.GetMainPointMiddle().pnt, pnt2)
 
             meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X + xMove, meObj.GetDrawPoint().Y + yMove))
         End If
