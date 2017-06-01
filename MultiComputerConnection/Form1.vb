@@ -44,8 +44,8 @@ Public Class Form1
 
     Public lstAnimationObjects As New List(Of AnimationObject)
 
-    Public pnt1 As New Point(0, 800)
-    Public pnt2 As New Point(245, 500)
+    Public pnt1 As New Point(0, 400)
+    Public pnt2 As New Point(300, 300)
 
     Private Sub Form1_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
         imgEnemyOne = Image.FromFile(currentFileDirectory & "EnemyFOne.png")
@@ -147,6 +147,25 @@ Public Class Form1
     'End Internet
 
     'Start Internet2
+    Public Function FindIntersectPoint(ByVal A As Point, ByVal B As Point, ByVal C As Point, ByVal D As Point) As Point
+        Dim dy1 As Double = B.Y - A.Y
+
+        Dim dx1 As Double = B.X - A.X
+        Dim dy2 As Double = D.Y - C.Y
+        Dim dx2 As Double = D.X - C.X
+        Dim p As New Point
+        'check whether the two line parallel
+        If dy1 * dx2 = dy2 * dx1 Then
+            MessageBox.Show("no point")
+            'Return P with a specific data
+        Else
+            Dim x As Double = ((C.Y - A.Y) * dx1 * dx2 + dy1 * dx2 * A.X - dy2 * dx1 * C.X) / (dy1 * dx2 - dy2 * dx1)
+            Dim y As Double = A.Y + (dy1 / dx1) * (x - A.X)
+            p = New Point(x, y)
+            Return p
+        End If
+    End Function
+
     Function FindAngle(ByVal l11 As Point, ByVal l12 As Point, ByVal l21 As Point, ByVal l22 As Point) As Single
         Return (Math.Atan2(l12.Y - l11.Y, l12.X - l11.X) - Math.Atan2(l22.Y - l21.Y, l22.X - l21.X)) '* (180 / Math.PI)
     End Function
@@ -160,25 +179,47 @@ Public Class Form1
         Dim int As Integer = DistanceToSegment(meObj.GetMainPointMiddle().pnt, pnt1, pnt2)
         Debug.Print(int.ToString & " is Distance")
         If DistanceToSegment(meObj.GetMainPointMiddle().pnt, pnt1, pnt2) < meObj.GetMainPointMiddle().sngRadius Then
+            Dim higestPnt As Point
+            If pnt1.Y > pnt2.Y Then
+                higestPnt = pnt2
+            Else
+                higestPnt = pnt1
+            End If
+
             Dim xMove, yMove As Short
-            'Works
+            'Works  1.5708 = 90 deg in radians
             Dim bAngle As Single = 1.5708 - Math.Abs(FindAngle(pnt1, pnt2, meObj.GetMainPointMiddle().pnt, pnt2))
             'Works
             Dim nSide As Single = Math.Cos(bAngle) * FindDistance(meObj.GetMainPointMiddle().pnt, pnt2)
             'Works
-            Dim lLength As Single = meObj.GetMainPointMiddle().sngRadius - nSide
+            Dim lLength As Single = Math.Abs(meObj.GetMainPointMiddle().sngRadius - nSide)
 
-            Dim pSide As Single = Math.Tan(bAngle) * nSide
+            Dim angleCDDL As Single = FindAngle(pnt1, pnt2, FindIntersectPoint(pnt1, pnt2, New Point(0, Short.MaxValue), New Point(0, Short.MinValue)), New Point(0, Integer.MaxValue))
 
-            Dim riseAB As Single = pnt1.Y - pnt2.Y
+            If meObj.GetMainPointMiddle().pnt.Y > higestPnt.Y Then
+                angleCDDL = (1.5708 * 2) + angleCDDL
+            End If
 
-            Dim runAB As Single = pnt1.X - pnt2.X
+            Dim rise As Single = Math.Sin(angleCDDL) * meObj.GetMainPointMiddle().sngRadius
 
-            Dim scaleFactor As Single = pSide / FindDistance(pnt1, pnt2)
+            Dim run As Single = Math.Cos(angleCDDL) * meObj.GetMainPointMiddle().sngRadius
 
-            Dim scaledRiseAB As Single = riseAB * scaleFactor
+            Dim scale As Single = lLength / meObj.GetMainPointMiddle().sngRadius
 
-            Dim scaledRunAB As Single = runAB * scaleFactor
+            yMove = (rise * scale)
+            xMove = (run * scale)
+
+            'Dim pSide As Single = Math.Tan(bAngle) * nSide
+
+            'Dim riseAB As Single = pnt1.Y - pnt2.Y
+
+            'Dim runAB As Single = pnt1.X - pnt2.X
+
+            'Dim scaleFactor As Single = pSide / FindDistance(pnt1, pnt2)
+
+            'Dim scaledRiseAB As Single = riseAB * scaleFactor
+
+            'Dim scaledRunAB As Single = runAB * scaleFactor
 
             meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X + xMove, meObj.GetDrawPoint().Y + yMove))
         End If
