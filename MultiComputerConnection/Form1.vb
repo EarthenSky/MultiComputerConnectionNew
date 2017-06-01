@@ -44,8 +44,8 @@ Public Class Form1
 
     Public lstAnimationObjects As New List(Of AnimationObject)
 
-    Public pnt1 As New Point(0, 1000)
-    Public pnt2 As New Point(245, 200)
+    Public pnt1 As New Point(0, 800)
+    Public pnt2 As New Point(245, 500)
 
     Private Sub Form1_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
         imgEnemyOne = Image.FromFile(currentFileDirectory & "EnemyFOne.png")
@@ -84,19 +84,15 @@ Public Class Form1
         If e.KeyCode = Keys.W Then
             GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.GetDrawPoint().X, meObj.GetDrawPoint().Y - 5)) 'send before do
             meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X, meObj.GetDrawPoint().Y - 5))
-            Refresh()
         ElseIf e.KeyCode = Keys.S Then
             GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.GetDrawPoint().X, meObj.GetDrawPoint().Y + 5)) 'send before do
             meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X, meObj.GetDrawPoint().Y + 5))
-            Refresh()
         ElseIf e.KeyCode = Keys.A Then
             GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.GetDrawPoint().X - 5, meObj.GetDrawPoint().Y)) 'send before do
             meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X - 5, meObj.GetDrawPoint().Y))
-            Refresh()
         ElseIf e.KeyCode = Keys.D Then
             GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.GetDrawPoint().X + 5, meObj.GetDrawPoint().Y)) 'send before do
             meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X + 5, meObj.GetDrawPoint().Y))
-            Refresh()
         ElseIf e.KeyCode = Keys.E Then
             lstAnimationObjects(0).PlayAnimation(1)
         ElseIf e.KeyCode = Keys.Up Then
@@ -172,7 +168,17 @@ Public Class Form1
             'Works
             Dim lLength As Single = meObj.GetMainPointMiddle().sngRadius - nSide
 
-            Dim pSide As Single = Math.Tan(bAngle) * FindDistance(meObj.GetMainPointMiddle().pnt, pnt2)
+            Dim pSide As Single = Math.Tan(bAngle) * nSide
+
+            Dim riseAB As Single = pnt1.Y - pnt2.Y
+
+            Dim runAB As Single = pnt1.X - pnt2.X
+
+            Dim scaleFactor As Single = pSide / FindDistance(pnt1, pnt2)
+
+            Dim scaledRiseAB As Single = riseAB * scaleFactor
+
+            Dim scaledRunAB As Single = runAB * scaleFactor
 
             meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X + xMove, meObj.GetDrawPoint().Y + yMove))
         End If
