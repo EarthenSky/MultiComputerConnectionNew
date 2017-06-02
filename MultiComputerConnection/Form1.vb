@@ -10,7 +10,8 @@ Public Enum Process
     AddComEnd
     GiveComs
     MessageEnd
-    ChangePos
+    PressedKey
+    UnPressedKey
     SendFrom
     PointGet
     NumGet
@@ -27,7 +28,8 @@ Public Class Form1
     Public Const chrGiveComs As Char = Chr(2)
     Public Const chrMessageEnd As Char = Chr(3)
 
-    Public Const chrChangePosition As Char = Chr(4) 'send character position
+    Public Const chrKeyPress As Char = Chr(4) 'send character position
+    Public Const chrKeyUnPress As Char = Chr(4) 'send character position
     Public Const chrSendFrom As Char = Chr(5) 'person from
     Public Const chrMakeNum As Char = Chr(6) 'makes a num value
 
@@ -40,19 +42,19 @@ Public Class Form1
 
     Private lstComputers As New List(Of String)
     Public meObj As OverDropObject
-    Public otherComObj As New List(Of OverDropObject)
+    Public otherComObj As New List(Of Player)
 
     Public lstAnimationObjects As New List(Of AnimationObject)
 
-    Public pnt1 As New Point(0, 400)
-    Public pnt2 As New Point(300, 300)
+    Public pnt1 As New Point(300, 500)
+    Public pnt2 As New Point(600, 200)
 
     Private Sub Form1_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
         imgEnemyOne = Image.FromFile(currentFileDirectory & "EnemyFOne.png")
         imgEnemyTwo = Image.FromFile(currentFileDirectory & "BugOne_MiniEnemy_SpriteSheet.png")
 
         meObj = New OverDropObject(New Point(0, 0), imgEnemyOne)
-        lstAnimationObjects.Add(New AnimationObject(New Point(0, 0), imgEnemyTwo, 100))
+        'lstAnimationObjects.Add(New AnimationObject(New Point(0, 0), imgEnemyTwo, 100))
 
         Me.KeyPreview = True
 
@@ -62,8 +64,8 @@ Public Class Form1
     End Sub
 
     Private Sub PaintMain(ByVal o As Object, ByVal e As PaintEventArgs) Handles pbxPlayArea.Paint
-        For Each obj As OverDropObject In otherComObj 'Draws other Computer controlled objects
-            e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.GetDrawPoint().X, obj.GetDrawPoint().Y, obj.imgMainImage.Width / 2, obj.imgMainImage.Height / 2))
+        For Each obj As Player In otherComObj 'Draws otherComputer controlled objects
+            e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.GetDrawPoint().X, obj.GetDrawPoint().Y, obj.imgMainImage.Width, obj.imgMainImage.Height / 2))
         Next
 
         For Each obj As AnimationObject In lstAnimationObjects 'Draws animations
@@ -77,32 +79,56 @@ Public Class Form1
         Next
 
         e.Graphics.DrawImage(imgEnemyTwo, New Rectangle(meObj.GetDrawPoint().X, meObj.GetDrawPoint().Y, meObj.imgMainImage.Width / 2, meObj.imgMainImage.Height / 2))
-        Debug.Print(meObj.GetMainPointMiddle().pnt.ToString & ", hey this is pos")
+        'Debug.Print(meObj.GetMainPointMiddle().pnt.ToString & ", hey this is pos")
     End Sub
 
+    Private blnWDown As Boolean = False
+    Private blnADown As Boolean = False
+    Private blnSDown As Boolean = False
+    Private blnDDown As Boolean = False
     Private Sub ButtonPress(ByVal o As System.Object, ByVal e As KeyEventArgs) Handles Me.KeyDown
+        'Movement Keys
         If e.KeyCode = Keys.W Then
-            GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.GetDrawPoint().X, meObj.GetDrawPoint().Y - 5)) 'send before do
-            meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X, meObj.GetDrawPoint().Y - 5))
-        ElseIf e.KeyCode = Keys.S Then
-            GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.GetDrawPoint().X, meObj.GetDrawPoint().Y + 5)) 'send before do
-            meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X, meObj.GetDrawPoint().Y + 5))
-        ElseIf e.KeyCode = Keys.A Then
-            GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.GetDrawPoint().X - 5, meObj.GetDrawPoint().Y)) 'send before do
-            meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X - 5, meObj.GetDrawPoint().Y))
-        ElseIf e.KeyCode = Keys.D Then
-            GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.GetDrawPoint().X + 5, meObj.GetDrawPoint().Y)) 'send before do
-            meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X + 5, meObj.GetDrawPoint().Y))
-        ElseIf e.KeyCode = Keys.E Then
+            'give button down
+            blnWDown = True
+        End If
+        If e.KeyCode = Keys.A Then
+            blnADown = True
+        End If
+        If e.KeyCode = Keys.S Then
+            blnSDown = True
+        End If
+        If e.KeyCode = Keys.D Then
+            blnDDown = True
+        End If
+
+        'Debug keys
+        If e.KeyCode = Keys.E Then
             lstAnimationObjects(0).PlayAnimation(1)
         ElseIf e.KeyCode = Keys.Up Then
             lstAnimationObjects(0).PlayAnimation(0)
         ElseIf e.KeyCode = Keys.T Then
             lstAnimationObjects(0).StopAnimation()
         End If
-
     End Sub
 
+    Private Sub MoveButtonUp(ByVal o As System.Object, ByVal e As KeyEventArgs) Handles Me.KeyUp
+        If e.KeyCode = Keys.W Then
+            'give button up
+            blnWDown = False
+        End If
+        If e.KeyCode = Keys.A Then
+            blnADown = False
+        End If
+        If e.KeyCode = Keys.S Then
+            blnSDown = False
+        End If
+        If e.KeyCode = Keys.D Then
+            blnDDown = False
+        End If
+    End Sub
+
+    'nope make mnew moethod
     Private Sub GivePositionChangeToFriends(ByVal strName As String, ByVal pnt As Point)
         'send my computers the name
         For index As Short = 0 To lstComputers.Count - 1
@@ -116,7 +142,7 @@ Public Class Form1
             Writer.Write(chrStartProcessingText & strName & chrSendFrom &
                          chrStartProcessingText & pnt.X.ToString & chrMakeNum &
                          chrStartProcessingText & pnt.Y.ToString & chrMakeNum &
-                         chrChangePosition)
+                         chrKeyPress)
             Writer.Flush()
         Next
     End Sub
@@ -176,9 +202,26 @@ Public Class Form1
     'End Internet2
 
     Private Sub tmrGameUpdate_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles tmrGameUpdate.Tick
-        Dim int As Integer = DistanceToSegment(meObj.GetMainPointMiddle().pnt, pnt1, pnt2)
-        Debug.Print(int.ToString & " is Distance")
+        If blnWDown = True Then
+            'GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.GetDrawPoint().X, meObj.GetDrawPoint().Y - 7)) 'send before do
+            meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X, meObj.GetDrawPoint().Y - 7))
+        End If
+        If blnADown = True Then
+            'GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.GetDrawPoint().X - 7, meObj.GetDrawPoint().Y)) 'send before do
+            meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X - 7, meObj.GetDrawPoint().Y))
+        End If
+        If blnSDown = True Then
+            'GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.GetDrawPoint().X, meObj.GetDrawPoint().Y + 7)) 'send before do
+            meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X, meObj.GetDrawPoint().Y + 7))
+        End If
+        If blnDDown = True Then
+            'GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.GetDrawPoint().X + 7, meObj.GetDrawPoint().Y)) 'send before do
+            meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X + 7, meObj.GetDrawPoint().Y))
+        End If
+
+        'Debug.Print(int.ToString & " is Distance")
         If DistanceToSegment(meObj.GetMainPointMiddle().pnt, pnt1, pnt2) < meObj.GetMainPointMiddle().sngRadius Then
+            Dim x = DistanceToSegment(meObj.GetMainPointMiddle().pnt, pnt1, pnt2)
             Dim higestPnt As Point
             If pnt1.Y > pnt2.Y Then
                 higestPnt = pnt2
@@ -196,7 +239,8 @@ Public Class Form1
 
             Dim angleCDDL As Single = FindAngle(pnt1, pnt2, FindIntersectPoint(pnt1, pnt2, New Point(0, Short.MaxValue), New Point(0, Short.MinValue)), New Point(0, Integer.MaxValue))
 
-            If meObj.GetMainPointMiddle().pnt.Y > higestPnt.Y Then
+            'If meObj.GetMainPointMiddle().pnt.Y > higestPnt.Y And meObj.GetMainPointMiddle().pnt.X < higestPnt.X Then
+            If (blnADown = True Or blnWDown = True) And (blnSDown = False Or blnDDown = False) Then
                 angleCDDL = (1.5708 * 2) + angleCDDL
             End If
 
@@ -209,19 +253,15 @@ Public Class Form1
             yMove = (rise * scale)
             xMove = (run * scale)
 
-            'Dim pSide As Single = Math.Tan(bAngle) * nSide
-
-            'Dim riseAB As Single = pnt1.Y - pnt2.Y
-
-            'Dim runAB As Single = pnt1.X - pnt2.X
-
-            'Dim scaleFactor As Single = pSide / FindDistance(pnt1, pnt2)
-
-            'Dim scaledRiseAB As Single = riseAB * scaleFactor
-
-            'Dim scaledRunAB As Single = runAB * scaleFactor
-
             meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X + xMove, meObj.GetDrawPoint().Y + yMove))
+        End If
+
+        If otherComObj.Count > 0 AndAlso FindDistance(otherComObj(0).GetMainPointMiddle().pnt, meObj.GetMainPointMiddle().pnt) Then
+            'Dim xMove, yMove As Short
+            'xMove = otherComObj(0).GetMainPointMiddle().pnt.X - meObj.GetMainPointMiddle().pnt.X
+            'yMove = otherComObj(0).GetMainPointMiddle().pnt.Y - meObj.GetMainPointMiddle().pnt.Y
+            'otherComObj(0).SetMainPoint(New Point(meObj.GetDrawPoint().X + xMove / 2, meObj.GetDrawPoint().Y + yMove / 2))
+            'meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X + xMove / 2, meObj.GetDrawPoint().Y + yMove / 2))
         End If
 
         Refresh()
@@ -275,8 +315,11 @@ Public Class Form1
             ElseIf chrCurrent = chrMessageEnd Then
                 currentProcess = Process.MessageEnd
 
-            ElseIf chrCurrent = chrChangePosition Then
-                currentProcess = Process.ChangePos
+            ElseIf chrCurrent = chrKeyPress Then
+                currentProcess = Process.PressedKey
+
+            ElseIf chrCurrent = chrKeyUnPress Then
+                currentProcess = Process.UnPressedKey
 
             ElseIf chrCurrent = chrSendFrom Then
                 currentProcess = Process.SendFrom
@@ -330,10 +373,17 @@ Public Class Form1
                 lbxChatConsole.Items.Add(shtInfo.ToString())
                 shtInfo = String.Empty
 
-            ElseIf currentProcess = Process.ChangePos Then  '0 is X, 1 is Y
-                otherComObj(lstComputers.IndexOf(strPersonFrom)).SetMainPoint(New Point(lstSht(0), lstSht(1)))
+            ElseIf currentProcess = Process.PressedKey Then  '0 is X, 1 is Y
+                otherComObj(lstComputers.IndexOf(strPersonFrom)).SetKeyPressed(shtInfo)
                 Refresh()
                 shtInfo = String.Empty
+                strPersonFrom = String.Empty
+
+            ElseIf currentProcess = Process.UnPressedKey Then  '0 is X, 1 is Y
+                otherComObj(lstComputers.IndexOf(strPersonFrom)).SetKeyUp(shtInfo)
+                Refresh()
+                shtInfo = String.Empty
+                strPersonFrom = String.Empty
 
             ElseIf currentProcess = Process.SendFrom Then
                 strPersonFrom = shtInfo
@@ -431,7 +481,7 @@ Public Class Form1
     End Sub
 
     Private Sub AddComputerToList(ByVal strName As String)
-        otherComObj.Add(New OverDropObject(New Point(0, 0), imgEnemyOne))  'Adds a new character to the screen
+        otherComObj.Add(New Player(New Point(0, 0), imgEnemyOne))  'Adds a new character to the screen
         lstComputers.Add(strName)
         lbxComputersConnectedTo.Items.Add(strName)
     End Sub

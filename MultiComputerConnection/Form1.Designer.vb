@@ -40,7 +40,7 @@ Partial Class Form1
         'lbxChatConsole
         '
         Me.lbxChatConsole.FormattingEnabled = True
-        Me.lbxChatConsole.Location = New System.Drawing.Point(424, 13)
+        Me.lbxChatConsole.Location = New System.Drawing.Point(938, 14)
         Me.lbxChatConsole.Name = "lbxChatConsole"
         Me.lbxChatConsole.Size = New System.Drawing.Size(227, 537)
         Me.lbxChatConsole.TabIndex = 0
@@ -50,7 +50,7 @@ Partial Class Form1
         Me.btnUpdateChatConsole.BackColor = System.Drawing.Color.Bisque
         Me.btnUpdateChatConsole.FlatAppearance.BorderSize = 2
         Me.btnUpdateChatConsole.FlatStyle = System.Windows.Forms.FlatStyle.Popup
-        Me.btnUpdateChatConsole.Location = New System.Drawing.Point(657, 12)
+        Me.btnUpdateChatConsole.Location = New System.Drawing.Point(1171, 13)
         Me.btnUpdateChatConsole.Name = "btnUpdateChatConsole"
         Me.btnUpdateChatConsole.Size = New System.Drawing.Size(176, 40)
         Me.btnUpdateChatConsole.TabIndex = 1
@@ -59,7 +59,7 @@ Partial Class Form1
         '
         'tbxMessageToSend
         '
-        Me.tbxMessageToSend.Location = New System.Drawing.Point(657, 58)
+        Me.tbxMessageToSend.Location = New System.Drawing.Point(1171, 59)
         Me.tbxMessageToSend.Multiline = True
         Me.tbxMessageToSend.Name = "tbxMessageToSend"
         Me.tbxMessageToSend.Size = New System.Drawing.Size(176, 137)
@@ -67,7 +67,7 @@ Partial Class Form1
         '
         'tbxConnectionComputerName
         '
-        Me.tbxConnectionComputerName.Location = New System.Drawing.Point(657, 484)
+        Me.tbxConnectionComputerName.Location = New System.Drawing.Point(1171, 485)
         Me.tbxConnectionComputerName.Name = "tbxConnectionComputerName"
         Me.tbxConnectionComputerName.Size = New System.Drawing.Size(176, 20)
         Me.tbxConnectionComputerName.TabIndex = 3
@@ -76,7 +76,7 @@ Partial Class Form1
         'lblInfo
         '
         Me.lblInfo.AutoSize = True
-        Me.lblInfo.Location = New System.Drawing.Point(654, 468)
+        Me.lblInfo.Location = New System.Drawing.Point(1168, 469)
         Me.lblInfo.Name = "lblInfo"
         Me.lblInfo.Size = New System.Drawing.Size(179, 13)
         Me.lblInfo.TabIndex = 4
@@ -85,7 +85,7 @@ Partial Class Form1
         'lbxComputersConnectedTo
         '
         Me.lbxComputersConnectedTo.FormattingEnabled = True
-        Me.lbxComputersConnectedTo.Location = New System.Drawing.Point(657, 214)
+        Me.lbxComputersConnectedTo.Location = New System.Drawing.Point(1171, 215)
         Me.lbxComputersConnectedTo.Name = "lbxComputersConnectedTo"
         Me.lbxComputersConnectedTo.Size = New System.Drawing.Size(176, 251)
         Me.lbxComputersConnectedTo.TabIndex = 5
@@ -93,7 +93,7 @@ Partial Class Form1
         'lblInfo2
         '
         Me.lblInfo2.AutoSize = True
-        Me.lblInfo2.Location = New System.Drawing.Point(657, 198)
+        Me.lblInfo2.Location = New System.Drawing.Point(1171, 199)
         Me.lblInfo2.Name = "lblInfo2"
         Me.lblInfo2.Size = New System.Drawing.Size(159, 13)
         Me.lblInfo2.TabIndex = 6
@@ -102,13 +102,13 @@ Partial Class Form1
         'tmrListenerUpdate
         '
         Me.tmrListenerUpdate.Enabled = True
-        Me.tmrListenerUpdate.Interval = 20
+        Me.tmrListenerUpdate.Interval = 12
         '
         'btnConnect
         '
         Me.btnConnect.BackColor = System.Drawing.Color.Bisque
         Me.btnConnect.FlatStyle = System.Windows.Forms.FlatStyle.Popup
-        Me.btnConnect.Location = New System.Drawing.Point(657, 510)
+        Me.btnConnect.Location = New System.Drawing.Point(1171, 511)
         Me.btnConnect.Name = "btnConnect"
         Me.btnConnect.Size = New System.Drawing.Size(176, 40)
         Me.btnConnect.TabIndex = 7
@@ -120,7 +120,7 @@ Partial Class Form1
         Me.pbxPlayArea.BackColor = System.Drawing.Color.PeachPuff
         Me.pbxPlayArea.Location = New System.Drawing.Point(13, 13)
         Me.pbxPlayArea.Name = "pbxPlayArea"
-        Me.pbxPlayArea.Size = New System.Drawing.Size(405, 538)
+        Me.pbxPlayArea.Size = New System.Drawing.Size(919, 538)
         Me.pbxPlayArea.TabIndex = 8
         Me.pbxPlayArea.TabStop = False
         '
@@ -134,7 +134,7 @@ Partial Class Form1
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.Color.Linen
-        Me.ClientSize = New System.Drawing.Size(845, 563)
+        Me.ClientSize = New System.Drawing.Size(1359, 563)
         Me.Controls.Add(Me.pbxPlayArea)
         Me.Controls.Add(Me.btnConnect)
         Me.Controls.Add(Me.lblInfo2)
