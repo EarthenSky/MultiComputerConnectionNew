@@ -86,20 +86,24 @@ Public Class Form1
     Private blnADown As Boolean = False
     Private blnSDown As Boolean = False
     Private blnDDown As Boolean = False
-    Private Sub ButtonPress(ByVal o As System.Object, ByVal e As KeyEventArgs) Handles Me.KeyDown
+    Private Sub MoveButtonPress(ByVal o As System.Object, ByVal e As KeyEventArgs) Handles Me.KeyDown
         'Movement Keys
         If e.KeyCode = Keys.W Then
             'give button down
             blnWDown = True
+            GiveKeyDownToFreinds(My.Computer.Name, "W")
         End If
         If e.KeyCode = Keys.A Then
             blnADown = True
+            GiveKeyDownToFreinds(My.Computer.Name, "A")
         End If
         If e.KeyCode = Keys.S Then
             blnSDown = True
+            GiveKeyDownToFreinds(My.Computer.Name, "S")
         End If
         If e.KeyCode = Keys.D Then
             blnDDown = True
+            GiveKeyDownToFreinds(My.Computer.Name, "D")
         End If
 
         'Debug keys
@@ -114,18 +118,53 @@ Public Class Form1
 
     Private Sub MoveButtonUp(ByVal o As System.Object, ByVal e As KeyEventArgs) Handles Me.KeyUp
         If e.KeyCode = Keys.W Then
-            'give button up
             blnWDown = False
+            GiveKeyUpToFreinds(My.Computer.Name, "W")
         End If
         If e.KeyCode = Keys.A Then
             blnADown = False
+            GiveKeyUpToFreinds(My.Computer.Name, "A")
         End If
         If e.KeyCode = Keys.S Then
             blnSDown = False
+            GiveKeyUpToFreinds(My.Computer.Name, "S")
         End If
         If e.KeyCode = Keys.D Then
             blnDDown = False
+            GiveKeyUpToFreinds(My.Computer.Name, "D")
         End If
+    End Sub
+
+    Private Sub GiveKeyDownToFreinds(ByVal strMyName As String, ByVal key As Char)
+        'send my computers the name
+        For index As Short = 0 To lstComputers.Count - 1
+            If lstComputers(index).ToString = My.Computer.Name Then
+                Continue For  'Don't send it to my name
+            End If
+
+            client = New TcpClient(lstComputers(index).ToString, 5019)
+
+            Dim Writer As New StreamWriter(client.GetStream())
+            Writer.Write(chrStartProcessingText & strMyName & chrSendFrom &
+                         chrStartProcessingText & key & chrKeyPress)
+            Writer.Flush()
+        Next
+    End Sub
+
+    Private Sub GiveKeyUpToFreinds(ByVal strMyName As String, ByVal key As Char)
+        'send my computers the name
+        For index As Short = 0 To lstComputers.Count - 1
+            If lstComputers(index).ToString = My.Computer.Name Then
+                Continue For  'Don't send it to my name
+            End If
+
+            client = New TcpClient(lstComputers(index).ToString, 5019)
+
+            Dim Writer As New StreamWriter(client.GetStream())
+            Writer.Write(chrStartProcessingText & strMyName & chrSendFrom &
+                         chrStartProcessingText & key & chrKeyUnPress)
+            Writer.Flush()
+        Next
     End Sub
 
     'nope make mnew moethod
@@ -375,13 +414,11 @@ Public Class Form1
 
             ElseIf currentProcess = Process.PressedKey Then  '0 is X, 1 is Y
                 otherComObj(lstComputers.IndexOf(strPersonFrom)).SetKeyPressed(shtInfo)
-                Refresh()
                 shtInfo = String.Empty
                 strPersonFrom = String.Empty
 
             ElseIf currentProcess = Process.UnPressedKey Then  '0 is X, 1 is Y
                 otherComObj(lstComputers.IndexOf(strPersonFrom)).SetKeyUp(shtInfo)
-                Refresh()
                 shtInfo = String.Empty
                 strPersonFrom = String.Empty
 
