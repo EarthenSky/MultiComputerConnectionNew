@@ -29,7 +29,7 @@ Public Class Form1
     Public Const chrMessageEnd As Char = Chr(3)
 
     Public Const chrKeyPress As Char = Chr(4) 'send character position
-    Public Const chrKeyUnPress As Char = Chr(4) 'send character position
+    Public Const chrKeyUnPress As Char = Chr(7) 'send character position
     Public Const chrSendFrom As Char = Chr(5) 'person from
     Public Const chrMakeNum As Char = Chr(6) 'makes a num value
 
@@ -65,7 +65,8 @@ Public Class Form1
 
     Private Sub PaintMain(ByVal o As Object, ByVal e As PaintEventArgs) Handles pbxPlayArea.Paint
         For Each obj As Player In otherComObj 'Draws otherComputer controlled objects
-            e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.GetDrawPoint().X, obj.GetDrawPoint().Y, obj.imgMainImage.Width, obj.imgMainImage.Height / 2))
+            e.Graphics.DrawImage(imgEnemyTwo, New Rectangle(obj.GetDrawPoint().X, obj.GetDrawPoint().Y, meObj.imgMainImage.Width / 2, meObj.imgMainImage.Height / 2))
+            'e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.GetDrawPoint().X, obj.GetDrawPoint().Y, obj.imgMainImage.Width, obj.imgMainImage.Height / 2))
         Next
 
         For Each obj As AnimationObject In lstAnimationObjects 'Draws animations
@@ -88,22 +89,22 @@ Public Class Form1
     Private blnDDown As Boolean = False
     Private Sub MoveButtonPress(ByVal o As System.Object, ByVal e As KeyEventArgs) Handles Me.KeyDown
         'Movement Keys
-        If e.KeyCode = Keys.W Then
+        If e.KeyCode = Keys.W And blnWDown = False Then
             'give button down
             blnWDown = True
-            GiveKeyDownToFreinds(My.Computer.Name, "W")
+            GiveKeyDownToFriends(My.Computer.Name, "W")
         End If
-        If e.KeyCode = Keys.A Then
+        If e.KeyCode = Keys.A And blnADown = False Then
             blnADown = True
-            GiveKeyDownToFreinds(My.Computer.Name, "A")
+            GiveKeyDownToFriends(My.Computer.Name, "A")
         End If
-        If e.KeyCode = Keys.S Then
+        If e.KeyCode = Keys.S And blnSDown = False Then
             blnSDown = True
-            GiveKeyDownToFreinds(My.Computer.Name, "S")
+            GiveKeyDownToFriends(My.Computer.Name, "S")
         End If
-        If e.KeyCode = Keys.D Then
+        If e.KeyCode = Keys.D And blnDDown = False Then
             blnDDown = True
-            GiveKeyDownToFreinds(My.Computer.Name, "D")
+            GiveKeyDownToFriends(My.Computer.Name, "D")
         End If
 
         'Debug keys
@@ -118,24 +119,24 @@ Public Class Form1
 
     Private Sub MoveButtonUp(ByVal o As System.Object, ByVal e As KeyEventArgs) Handles Me.KeyUp
         If e.KeyCode = Keys.W Then
-            blnWDown = False
-            GiveKeyUpToFreinds(My.Computer.Name, "W")
+            blnWDown = False 
+            GiveKeyUpToFriends(My.Computer.Name, "W", meObj.GetDrawPoint())
         End If
         If e.KeyCode = Keys.A Then
             blnADown = False
-            GiveKeyUpToFreinds(My.Computer.Name, "A")
+            GiveKeyUpToFriends(My.Computer.Name, "A", meObj.GetDrawPoint())
         End If
         If e.KeyCode = Keys.S Then
             blnSDown = False
-            GiveKeyUpToFreinds(My.Computer.Name, "S")
+            GiveKeyUpToFriends(My.Computer.Name, "S", meObj.GetDrawPoint())
         End If
         If e.KeyCode = Keys.D Then
             blnDDown = False
-            GiveKeyUpToFreinds(My.Computer.Name, "D")
+            GiveKeyUpToFriends(My.Computer.Name, "D", meObj.GetDrawPoint())
         End If
     End Sub
 
-    Private Sub GiveKeyDownToFreinds(ByVal strMyName As String, ByVal key As Char)
+    Private Sub GiveKeyDownToFriends(ByVal strMyName As String, ByVal key As Char)
         'send my computers the name
         For index As Short = 0 To lstComputers.Count - 1
             If lstComputers(index).ToString = My.Computer.Name Then
@@ -151,7 +152,7 @@ Public Class Form1
         Next
     End Sub
 
-    Private Sub GiveKeyUpToFreinds(ByVal strMyName As String, ByVal key As Char)
+    Private Sub GiveKeyUpToFriends(ByVal strMyName As String, ByVal key As Char, ByVal myPnt As Point)
         'send my computers the name
         For index As Short = 0 To lstComputers.Count - 1
             If lstComputers(index).ToString = My.Computer.Name Then
@@ -162,8 +163,12 @@ Public Class Form1
 
             Dim Writer As New StreamWriter(client.GetStream())
             Writer.Write(chrStartProcessingText & strMyName & chrSendFrom &
+                         chrStartProcessingText & myPnt.X & chrMakeNum &
+                         chrStartProcessingText & myPnt.Y & chrMakeNum &
                          chrStartProcessingText & key & chrKeyUnPress)
             Writer.Flush()
+
+            'Send Pos too.
         Next
     End Sub
 
@@ -239,24 +244,36 @@ Public Class Form1
         Return Math.Sqrt(sqr(pnt2.X - pnt1.X) + sqr(pnt2.Y - pnt1.Y))
     End Function
     'End Internet2
+    Private shtCharSpeed As Short = 7
 
     Private Sub tmrGameUpdate_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles tmrGameUpdate.Tick
         If blnWDown = True Then
-            'GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.GetDrawPoint().X, meObj.GetDrawPoint().Y - 7)) 'send before do
-            meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X, meObj.GetDrawPoint().Y - 7))
+            meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X, meObj.GetDrawPoint().Y - shtCharSpeed))
         End If
         If blnADown = True Then
-            'GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.GetDrawPoint().X - 7, meObj.GetDrawPoint().Y)) 'send before do
-            meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X - 7, meObj.GetDrawPoint().Y))
+            meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X - shtCharSpeed, meObj.GetDrawPoint().Y))
         End If
         If blnSDown = True Then
-            'GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.GetDrawPoint().X, meObj.GetDrawPoint().Y + 7)) 'send before do
-            meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X, meObj.GetDrawPoint().Y + 7))
+            meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X, meObj.GetDrawPoint().Y + shtCharSpeed))
         End If
         If blnDDown = True Then
-            'GivePositionChangeToFriends(My.Computer.Name, New Point(meObj.GetDrawPoint().X + 7, meObj.GetDrawPoint().Y)) 'send before do
-            meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X + 7, meObj.GetDrawPoint().Y))
+            meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X + shtCharSpeed, meObj.GetDrawPoint().Y))
         End If
+
+        For Each plyr As Player In otherComObj
+            If plyr.blnWDown = True Then
+                plyr.SetMainPoint(New Point(plyr.GetDrawPoint().X, plyr.GetDrawPoint().Y - shtCharSpeed))
+            End If
+            If plyr.blnADown = True Then
+                plyr.SetMainPoint(New Point(plyr.GetDrawPoint().X - shtCharSpeed, plyr.GetDrawPoint().Y))
+            End If
+            If plyr.blnSDown = True Then
+                plyr.SetMainPoint(New Point(plyr.GetDrawPoint().X, plyr.GetDrawPoint().Y + shtCharSpeed))
+            End If
+            If plyr.blnDDown = True Then
+                plyr.SetMainPoint(New Point(plyr.GetDrawPoint().X + shtCharSpeed, plyr.GetDrawPoint().Y))
+            End If
+        Next
 
         'Debug.Print(int.ToString & " is Distance")
         If DistanceToSegment(meObj.GetMainPointMiddle().pnt, pnt1, pnt2) < meObj.GetMainPointMiddle().sngRadius Then
@@ -410,24 +427,34 @@ Public Class Form1
 
             ElseIf currentProcess = Process.MessageEnd Then
                 lbxChatConsole.Items.Add(shtInfo.ToString())
+
                 shtInfo = String.Empty
 
-            ElseIf currentProcess = Process.PressedKey Then  '0 is X, 1 is Y
+            ElseIf currentProcess = Process.PressedKey Then  'Gets a pressed key from another computer.
                 otherComObj(lstComputers.IndexOf(strPersonFrom)).SetKeyPressed(shtInfo)
+
                 shtInfo = String.Empty
                 strPersonFrom = String.Empty
 
-            ElseIf currentProcess = Process.UnPressedKey Then  '0 is X, 1 is Y
+            ElseIf currentProcess = Process.UnPressedKey Then  'Gets an unpressed key from another computer. 'X is sent first, then y   
                 otherComObj(lstComputers.IndexOf(strPersonFrom)).SetKeyUp(shtInfo)
+                otherComObj(lstComputers.IndexOf(strPersonFrom)).SetMainPoint(New Point(lstSht(0), lstSht(1)))
+
+                'clear variables.
                 shtInfo = String.Empty
                 strPersonFrom = String.Empty
+                lstSht.Clear()
+
+                Debug.Print("Keyup")
 
             ElseIf currentProcess = Process.SendFrom Then
                 strPersonFrom = shtInfo
+
                 shtInfo = String.Empty
 
             ElseIf currentProcess = Process.NumGet Then
                 lstSht.Add(Val(shtInfo))
+
                 shtInfo = String.Empty
 
             Else

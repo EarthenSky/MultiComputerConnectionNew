@@ -25,10 +25,10 @@
         lstPointPosition(0) = New CircleBox(pnt, lstPointPosition(0).sngRadius)
     End Sub
 
-    Private blnWDown As Boolean = False
-    Private blnADown As Boolean = False
-    Private blnSDown As Boolean = False
-    Private blnDDown As Boolean = False
+    Public blnWDown As Boolean = False
+    Public blnADown As Boolean = False
+    Public blnSDown As Boolean = False
+    Public blnDDown As Boolean = False
 
     Public Sub SetKeyPressed(ByVal key As Char)
         If key = "W" Then

@@ -102,7 +102,7 @@ Partial Class Form1
         'tmrListenerUpdate
         '
         Me.tmrListenerUpdate.Enabled = True
-        Me.tmrListenerUpdate.Interval = 12
+        Me.tmrListenerUpdate.Interval = 16
         '
         'btnConnect
         '
