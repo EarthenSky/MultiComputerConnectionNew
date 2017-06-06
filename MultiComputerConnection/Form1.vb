@@ -49,6 +49,9 @@ Public Class Form1
     Public pnt1 As New Point(300, 500)
     Public pnt2 As New Point(600, 200)
 
+    Public collisionMap1 As Image
+    Public drawMap1 As Image
+
     Private Sub Form1_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
         imgEnemyOne = Image.FromFile(currentFileDirectory & "EnemyFOne.png")
         imgEnemyTwo = Image.FromFile(currentFileDirectory & "BugOne_MiniEnemy_SpriteSheet.png")
@@ -81,6 +84,10 @@ Public Class Form1
 
         e.Graphics.DrawImage(imgEnemyTwo, New Rectangle(meObj.GetDrawPoint().X, meObj.GetDrawPoint().Y, meObj.imgMainImage.Width / 2, meObj.imgMainImage.Height / 2))
         'Debug.Print(meObj.GetMainPointMiddle().pnt.ToString & ", hey this is pos")
+    End Sub
+
+    Private Sub LoadMap(ByVal drawMap As Image, ByVal colMap As Image)
+
     End Sub
 
     Private blnWDown As Boolean = False
@@ -312,12 +319,29 @@ Public Class Form1
             meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X + xMove, meObj.GetDrawPoint().Y + yMove))
         End If
 
-        If otherComObj.Count > 0 AndAlso FindDistance(otherComObj(0).GetMainPointMiddle().pnt, meObj.GetMainPointMiddle().pnt) Then
-            'Dim xMove, yMove As Short
-            'xMove = otherComObj(0).GetMainPointMiddle().pnt.X - meObj.GetMainPointMiddle().pnt.X
-            'yMove = otherComObj(0).GetMainPointMiddle().pnt.Y - meObj.GetMainPointMiddle().pnt.Y
-            'otherComObj(0).SetMainPoint(New Point(meObj.GetDrawPoint().X + xMove / 2, meObj.GetDrawPoint().Y + yMove / 2))
-            'meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X + xMove / 2, meObj.GetDrawPoint().Y + yMove / 2))
+        If otherComObj.Count > 0 AndAlso FindDistance(otherComObj(0).GetDrawPoint(), meObj.GetDrawPoint()) < meObj.GetMainPointMiddle().sngRadius + otherComObj(0).GetMainPointMiddle().sngRadius Then
+            Dim xMove, yMove As Single
+
+            'Finds the rise and run of the two radius of the circles and scales it down to the overlap.
+
+            Dim run As Single = meObj.GetMainPointMiddle().pnt.X - otherComObj(0).GetMainPointMiddle().pnt.X
+            Dim rise As Single = meObj.GetMainPointMiddle().pnt.Y - otherComObj(0).GetMainPointMiddle().pnt.Y
+
+            Dim smallDis As Single = meObj.GetMainPointMiddle.sngRadius + otherComObj(0).GetMainPointMiddle().sngRadius - FindDistance(otherComObj(0).GetDrawPoint(), meObj.GetDrawPoint())
+            Dim scaleFactor As Single = smallDis / (meObj.GetMainPointMiddle.sngRadius + otherComObj(0).GetMainPointMiddle().sngRadius)
+
+            xMove = run * scaleFactor / 2
+            yMove = rise * scaleFactor / 2
+
+            If (blnADown = True Or blnWDown = True) And (blnSDown = False Or blnDDown = False) Then
+                otherComObj(0).SetMainPoint(New Point(otherComObj(0).GetDrawPoint().X - xMove, otherComObj(0).GetDrawPoint().Y - yMove))
+                meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X + xMove, meObj.GetDrawPoint().Y + yMove))
+            Else
+                otherComObj(0).SetMainPoint(New Point(otherComObj(0).GetDrawPoint().X - xMove, otherComObj(0).GetDrawPoint().Y - yMove))
+                meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X + xMove, meObj.GetDrawPoint().Y + yMove))
+                'otherComObj(0).SetMainPoint(New Point(otherComObj(0).GetDrawPoint().X + xMove, otherComObj(0).GetDrawPoint().Y + yMove))
+                'meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X - xMove, meObj.GetDrawPoint().Y - yMove))
+            End If
         End If
 
         Refresh()
