@@ -29,6 +29,7 @@ Public Class OverDropObject
         ElseIf lstPointPosition.Count > 1 Then
             Return lstPointPosition(0) 'TODO: NOT DONE YET, THIS SHOULD OUTPUT THE MAIN POINT (THAT THE OBJECT TURNS AROUND?)
         End If
+
     End Function
 
     Public Sub SetMainPoint(ByVal pnt As Point)

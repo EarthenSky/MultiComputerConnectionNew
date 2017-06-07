@@ -56,6 +56,12 @@ Public Class Form1
         imgEnemyOne = Image.FromFile(currentFileDirectory & "EnemyFOne.png")
         imgEnemyTwo = Image.FromFile(currentFileDirectory & "BugOne_MiniEnemy_SpriteSheet.png")
 
+
+        drawMap1 = Image.FromFile(currentFileDirectory & "ColliderMapDraw.png")
+        collisionMap1 = Image.FromFile(currentFileDirectory & "ColliderMap.png")
+
+        LoadMap(drawMap1, collisionMap1)
+
         meObj = New OverDropObject(New Point(0, 0), imgEnemyOne)
         'lstAnimationObjects.Add(New AnimationObject(New Point(0, 0), imgEnemyTwo, 100))
 
@@ -87,7 +93,16 @@ Public Class Form1
     End Sub
 
     Private Sub LoadMap(ByVal drawMap As Image, ByVal colMap As Image)
+        Dim bmpCollision As New Bitmap(colMap)
+        Debug.Print(bmpCollision.GetPixel(128, 128).G)
+        For index As Short = 0 To colMap.Width
 
+
+            ' If .G > 0 Then
+            Debug.Print("cut at : " & index)
+
+            'End If
+        Next
     End Sub
 
     Private blnWDown As Boolean = False
@@ -251,8 +266,8 @@ Public Class Form1
         Return Math.Sqrt(sqr(pnt2.X - pnt1.X) + sqr(pnt2.Y - pnt1.Y))
     End Function
     'End Internet2
-    Private shtCharSpeed As Short = 7
 
+    Private shtCharSpeed As Short = 7
     Private Sub tmrGameUpdate_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles tmrGameUpdate.Tick
         If blnWDown = True Then
             meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X, meObj.GetDrawPoint().Y - shtCharSpeed))
