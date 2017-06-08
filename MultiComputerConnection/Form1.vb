@@ -57,7 +57,6 @@ Public Class Form1
         imgEnemyOne = Image.FromFile(currentFileDirectory & "EnemyFOne.png")
         imgEnemyTwo = Image.FromFile(currentFileDirectory & "BugOne_MiniEnemy_SpriteSheet.png")
 
-
         drawMap1 = Image.FromFile(currentFileDirectory & "ColliderMapDraw.png")
         collisionMap1 = Image.FromFile(currentFileDirectory & "ColliderMap.png")
 
@@ -92,8 +91,6 @@ Public Class Form1
         e.Graphics.DrawImage(imgEnemyTwo, New Rectangle(meObj.GetDrawPoint().X, meObj.GetDrawPoint().Y, meObj.imgMainImage.Width / 2, meObj.imgMainImage.Height / 2))
         'Debug.Print(meObj.GetMainPointMiddle().pnt.ToString & ", hey this is pos")
     End Sub
-
-
 
     Private blnWDown As Boolean = False
     Private blnADown As Boolean = False

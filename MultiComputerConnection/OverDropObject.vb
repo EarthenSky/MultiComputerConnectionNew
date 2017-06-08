@@ -18,7 +18,7 @@ Public Class OverDropObject
     End Sub
 
     Public Function GetDrawPoint() As Point
-        If lstPointPosition.Count > 1 Then  'TODO: take this away in the future, this is debug
+        If lstPointPosition.Count >= 1 Then  'TODO: take this away in the future, this is debug
             Return lstPointPosition(0).pnt
         End If
     End Function
@@ -32,7 +32,7 @@ Public Class OverDropObject
 
     End Function
 
-    Public Sub SetMainPoint(ByVal pnt As Point)
-        lstPointPosition(0) = New CircleBox(pnt, lstPointPosition(0).sngRadius)
+    Public Sub SetMainPoint(ByVal pntr As Point)
+        lstPointPosition(0) = New CircleBox(pntr, lstPointPosition(0).sngRadius)
     End Sub
 End Class
