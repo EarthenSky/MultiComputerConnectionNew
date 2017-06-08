@@ -123,6 +123,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="126%283 - Chaosotacitc Skies%29.wav" />
     <Content Include="BugOne_MiniEnemy_SpriteSheet.png" />
     <Content Include="ColliderMap.png" />
     <Content Include="ColliderMapDraw.png" />
