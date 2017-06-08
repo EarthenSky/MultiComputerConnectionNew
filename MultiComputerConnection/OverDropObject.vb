@@ -13,12 +13,12 @@ Public Class OverDropObject
     Public imgMainImage As Image
 
     Sub New(ByVal pnt As Point, ByVal img As Image)
-        lstPointPosition.Add(New CircleBox(pnt, 64)) 'TODO: this presets radius to 1
+        lstPointPosition.Add(New CircleBox(pnt, 64)) 'TODO: this presets radius to 64
         imgMainImage = img
     End Sub
 
     Public Function GetDrawPoint() As Point
-        If lstPointPosition.Count = 1 Then  'TODO: take this away in the future, this is debug
+        If lstPointPosition.Count > 1 Then  'TODO: take this away in the future, this is debug
             Return lstPointPosition(0).pnt
         End If
     End Function

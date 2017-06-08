@@ -27,9 +27,8 @@ Public Class Form1
     Public Const chrAddComToConnectListEnd As Char = Chr(1)
     Public Const chrGiveComs As Char = Chr(2)
     Public Const chrMessageEnd As Char = Chr(3)
-
-    Public Const chrKeyPress As Char = Chr(4) 'send character position
-    Public Const chrKeyUnPress As Char = Chr(7) 'send character position
+    Public Const chrKeyPress As Char = Chr(4) 'send key pressed
+    Public Const chrKeyUnPress As Char = Chr(7) 'send key released
     Public Const chrSendFrom As Char = Chr(5) 'person from
     Public Const chrMakeNum As Char = Chr(6) 'makes a num value
 
@@ -40,17 +39,19 @@ Public Class Form1
     Private listener As New TcpListener(5019)
     Private client As New TcpClient
 
-    Private lstComputers As New List(Of String)
+    Public lstComputers As New List(Of String)
     Public meObj As OverDropObject
     Public otherComObj As New List(Of Player)
 
     Public lstAnimationObjects As New List(Of AnimationObject)
 
-    Public pnt1 As New Point(300, 500)
-    Public pnt2 As New Point(600, 200)
+    Public pntTest1 As New Point(300, 500)
+    Public pntTest2 As New Point(600, 200)
 
     Public collisionMap1 As Image
     Public drawMap1 As Image
+
+    Public mapObj As CollisionMap
 
     Private Sub Form1_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
         imgEnemyOne = Image.FromFile(currentFileDirectory & "EnemyFOne.png")
@@ -60,7 +61,7 @@ Public Class Form1
         drawMap1 = Image.FromFile(currentFileDirectory & "ColliderMapDraw.png")
         collisionMap1 = Image.FromFile(currentFileDirectory & "ColliderMap.png")
 
-        LoadMap(drawMap1, collisionMap1)
+        mapObj = New CollisionMap(drawMap1, collisionMap1)
 
         meObj = New OverDropObject(New Point(0, 0), imgEnemyOne)
         'lstAnimationObjects.Add(New AnimationObject(New Point(0, 0), imgEnemyTwo, 100))
@@ -92,18 +93,7 @@ Public Class Form1
         'Debug.Print(meObj.GetMainPointMiddle().pnt.ToString & ", hey this is pos")
     End Sub
 
-    Private Sub LoadMap(ByVal drawMap As Image, ByVal colMap As Image)
-        Dim bmpCollision As New Bitmap(colMap)
-        Debug.Print(bmpCollision.GetPixel(128, 128).G)
-        For index As Short = 0 To colMap.Width
 
-
-            ' If .G > 0 Then
-            Debug.Print("cut at : " & index)
-
-            'End If
-        Next
-    End Sub
 
     Private blnWDown As Boolean = False
     Private blnADown As Boolean = False
@@ -141,7 +131,7 @@ Public Class Form1
 
     Private Sub MoveButtonUp(ByVal o As System.Object, ByVal e As KeyEventArgs) Handles Me.KeyUp
         If e.KeyCode = Keys.W Then
-            blnWDown = False 
+            blnWDown = False
             GiveKeyUpToFriends(My.Computer.Name, "W", meObj.GetDrawPoint())
         End If
         If e.KeyCode = Keys.A Then
@@ -194,26 +184,7 @@ Public Class Form1
         Next
     End Sub
 
-    'nope make mnew moethod
-    Private Sub GivePositionChangeToFriends(ByVal strName As String, ByVal pnt As Point)
-        'send my computers the name
-        For index As Short = 0 To lstComputers.Count - 1
-            If lstComputers(index).ToString = My.Computer.Name Then
-                Continue For  'Don't send it to my name
-            End If
-
-            client = New TcpClient(lstComputers(index).ToString, 5019)
-
-            Dim Writer As New StreamWriter(client.GetStream())
-            Writer.Write(chrStartProcessingText & strName & chrSendFrom &
-                         chrStartProcessingText & pnt.X.ToString & chrMakeNum &
-                         chrStartProcessingText & pnt.Y.ToString & chrMakeNum &
-                         chrKeyPress)
-            Writer.Flush()
-        Next
-    End Sub
-
-    'Start Internet
+    'Start Converted Internet
     Function sqr(ByVal x) As Integer
         Return x * x
     End Function
@@ -236,9 +207,7 @@ Public Class Form1
     Function DistanceToSegment(ByVal p As Point, ByVal v As Point, ByVal w As Point)
         Return Math.Sqrt(DistanceToSegmentSquared(p, v, w))
     End Function
-    'End Internet
 
-    'Start Internet2
     Public Function FindIntersectPoint(ByVal A As Point, ByVal B As Point, ByVal C As Point, ByVal D As Point) As Point
         Dim dy1 As Double = B.Y - A.Y
 
@@ -298,24 +267,24 @@ Public Class Form1
         Next
 
         'Debug.Print(int.ToString & " is Distance")
-        If DistanceToSegment(meObj.GetMainPointMiddle().pnt, pnt1, pnt2) < meObj.GetMainPointMiddle().sngRadius Then
-            Dim x = DistanceToSegment(meObj.GetMainPointMiddle().pnt, pnt1, pnt2)
+        If DistanceToSegment(meObj.GetMainPointMiddle().pnt, pntTest1, pntTest2) < meObj.GetMainPointMiddle().sngRadius Then
+            Dim x = DistanceToSegment(meObj.GetMainPointMiddle().pnt, pntTest1, pntTest2)
             Dim higestPnt As Point
-            If pnt1.Y > pnt2.Y Then
-                higestPnt = pnt2
+            If pntTest1.Y > pntTest2.Y Then
+                higestPnt = pntTest2
             Else
-                higestPnt = pnt1
+                higestPnt = pntTest1
             End If
 
             Dim xMove, yMove As Short
             'Works  1.5708 = 90 deg in radians
-            Dim bAngle As Single = 1.5708 - Math.Abs(FindAngle(pnt1, pnt2, meObj.GetMainPointMiddle().pnt, pnt2))
+            Dim bAngle As Single = 1.5708 - Math.Abs(FindAngle(pntTest1, pntTest2, meObj.GetMainPointMiddle().pnt, pntTest2))
             'Works
-            Dim nSide As Single = Math.Cos(bAngle) * FindDistance(meObj.GetMainPointMiddle().pnt, pnt2)
+            Dim nSide As Single = Math.Cos(bAngle) * FindDistance(meObj.GetMainPointMiddle().pnt, pntTest2)
             'Works
             Dim lLength As Single = Math.Abs(meObj.GetMainPointMiddle().sngRadius - nSide)
 
-            Dim angleCDDL As Single = FindAngle(pnt1, pnt2, FindIntersectPoint(pnt1, pnt2, New Point(0, Short.MaxValue), New Point(0, Short.MinValue)), New Point(0, Integer.MaxValue))
+            Dim angleCDDL As Single = FindAngle(pntTest1, pntTest2, FindIntersectPoint(pntTest1, pntTest2, New Point(0, Short.MaxValue), New Point(0, Short.MinValue)), New Point(0, Integer.MaxValue))
 
             'If meObj.GetMainPointMiddle().pnt.Y > higestPnt.Y And meObj.GetMainPointMiddle().pnt.X < higestPnt.X Then
             If (blnADown = True Or blnWDown = True) And (blnSDown = False Or blnDDown = False) Then

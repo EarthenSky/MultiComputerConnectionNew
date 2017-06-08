@@ -9,7 +9,7 @@
     Public pntCurrentImgIndexes As Point ' Y is animation number, X is animation pane.
 
     Sub New(ByVal pnt As Point, ByVal img As Image, ByVal shtAnimationInterval As Short)
-        lstPointPosition.Add(New CircleBox(pnt, 5)) 'TODO: this presets radius to 1
+        lstPointPosition.Add(New CircleBox(pnt, 5)) 'TODO: this presets radius to 5
 
         imgMainImage = img
 
