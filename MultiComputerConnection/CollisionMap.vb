@@ -70,19 +70,20 @@ Public Class CollisionMap 'Instantiate to make a collider map of lines, call the
         Next
     End Sub
 
+
     Public Sub AddRedPixelToList(ByVal pxPnt As PixelPoint)
         Dim shtListIndexX = 0
         Dim shtListIndexY = 0
 
         'Find x 
-        For index As Short = 0 To arySectionsX.Count - 1
+        For index As Short = 0 To lstLstSections.Count - 1  'TODO: This is slightly inefficient, only loop the x ones if possible.
             If pxPnt.pnt.X > lstLstSections(index).rect.X Then
                 shtListIndexX = lstLstSections(index).rect.X
             End If
         Next
 
         'Find y
-        For index As Short = 0 To arySectionsX.Count - 1
+        For index As Short = 0 To lstLstSections.Count - 1  'This is slightly inefficient
             If pxPnt.pnt.Y > lstLstSections(index).rect.Y Then
                 shtListIndexY = lstLstSections(index).rect.Y
             End If
@@ -90,8 +91,9 @@ Public Class CollisionMap 'Instantiate to make a collider map of lines, call the
 
         'Find list
         For index As Short = 0 To lstLstSections.Count - 1
-            If lstLstSections(index).rect.Y = pxPnt.pnt.Y And lstLstSections(index).rect.X = pxPnt.pnt.X Then
-                lstLstSections(index).lstPnt.Add(pxPnt) 'TODO: NEVER GETS HERE!!!
+            If lstLstSections(index).rect.Y = shtListIndexY And lstLstSections(index).rect.X = shtListIndexX Then
+                lstLstSections(index).lstPnt.Add(pxPnt)
+                Exit Sub  'After the last line it is done
             End If
         Next
     End Sub
