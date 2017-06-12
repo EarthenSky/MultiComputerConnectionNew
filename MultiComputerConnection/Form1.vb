@@ -45,8 +45,8 @@ Public Class Form1
 
     Public lstAnimationObjects As New List(Of AnimationObject)
 
-    Public pntTest1 As New Point(300, 500)
-    Public pntTest2 As New Point(600, 200)
+    Public pntTest1 As New Point(300, 200)
+    Public pntTest2 As New Point(600, 500)
 
     Public collisionMap1 As Image
     Public drawMap1 As Image
@@ -59,12 +59,12 @@ Public Class Form1
         imgEnemyOne = Image.FromFile(currentFileDirectory & "EnemyFOne.png")
         imgEnemyTwo = Image.FromFile(currentFileDirectory & "BugOne_MiniEnemy_SpriteSheet.png")
 
-        drawMap1 = Image.FromFile(currentFileDirectory & "ColliderMapDraw.png")
-        collisionMap1 = Image.FromFile(currentFileDirectory & "ColliderMap.png")
+        drawMap1 = Image.FromFile(currentFileDirectory & "ColliderMap2Draw.png")
+        collisionMap1 = Image.FromFile(currentFileDirectory & "ColliderMap2.png")
 
         mapObj = New CollisionMap(drawMap1, collisionMap1)
 
-        meObj = New OverDropObject(New Point(0, 0), imgEnemyOne, 32)
+        meObj = New OverDropObject(New Point(200, 200), imgEnemyOne, 32)
         'lstAnimationObjects.Add(New AnimationObject(New Point(0, 0), imgEnemyTwo, 100))
 
         Me.KeyPreview = True
@@ -146,40 +146,38 @@ Public Class Form1
 
 #If False Then
         'Debug.Print(int.ToString & " is Distance")
-        If DistanceToSegment(meObj.GetMainPointMiddle().pnt, pntTest1, pntTest2) < meObj.GetMainPointMiddle().sngRadius Then
-            Dim x = DistanceToSegment(meObj.GetMainPointMiddle().pnt, pntTest1, pntTest2)
-            Dim higestPnt As Point
-            If pntTest1.Y > pntTest2.Y Then
-                higestPnt = pntTest2
-            Else
-                higestPnt = pntTest1
-            End If
+        If DistanceToSegment(meObj.GetMainPoint(0).pnt, pntTest1, pntTest2) < meObj.GetMainPoint(0).sngRadius Then
 
             Dim xMove, yMove As Short
             'Works  1.5708 = 90 deg in radians
-            Dim bAngle As Single = 1.5708 - Math.Abs(FindAngle(pntTest1, pntTest2, meObj.GetMainPointMiddle().pnt, pntTest2))
+            Dim bAngle As Single = 1.5708 - Math.Abs(FindAngle(pntTest1, pntTest2, meObj.GetMainPoint(0).pnt, pntTest2))
             'Works
-            Dim nSide As Single = Math.Cos(bAngle) * FindDistance(meObj.GetMainPointMiddle().pnt, pntTest2)
+            Dim nSide As Single = Math.Cos(bAngle) * FindDistance(meObj.GetMainPoint(0).pnt, pntTest2)
             'Works
-            Dim lLength As Single = Math.Abs(meObj.GetMainPointMiddle().sngRadius - nSide)
+            Dim lLength As Single = Math.Abs(meObj.GetMainPoint(0).sngRadius - nSide)
 
-            Dim angleCDDL As Single = FindAngle(pntTest1, pntTest2, FindIntersectPoint(pntTest1, pntTest2, New Point(0, Short.MaxValue), New Point(0, Short.MinValue)), New Point(0, Integer.MaxValue))
+            Dim angleCDDL As Single = FindAngle(pntTest1, pntTest2, FindIntersectPoint(pntTest1, pntTest2, New Point(0, Short.MaxValue), New Point(0, Short.MinValue)), New Point(0, Short.MaxValue))
 
-            'If meObj.GetMainPointMiddle().pnt.Y > higestPnt.Y And meObj.GetMainPointMiddle().pnt.X < higestPnt.X Then
-            If (blnADown = True Or blnWDown = True) And (blnSDown = False Or blnDDown = False) Then
-                angleCDDL = (1.5708 * 2) + angleCDDL
+            If angleCDDL < -1.5708 Then
+                If (blnADown = True Or blnWDown = True) And (blnSDown = False Or blnDDown = False) Then
+                    angleCDDL = (1.5708 * 2) + angleCDDL
+                End If
+            Else
+                If (blnDDown = True Or blnWDown = True) And (blnSDown = False Or blnADown = False) Then
+                    angleCDDL = (1.5708 * 2) + angleCDDL
+                End If
             End If
 
-            Dim rise As Single = Math.Sin(angleCDDL) * meObj.GetMainPointMiddle().sngRadius
+            Dim rise As Single = Math.Sin(angleCDDL) * meObj.GetMainPoint(0).sngRadius
 
-            Dim run As Single = Math.Cos(angleCDDL) * meObj.GetMainPointMiddle().sngRadius
+            Dim run As Single = Math.Cos(angleCDDL) * meObj.GetMainPoint(0).sngRadius
 
-            Dim scale As Single = lLength / meObj.GetMainPointMiddle().sngRadius
+            Dim scale As Single = lLength / meObj.GetMainPoint(0).sngRadius
 
             yMove = (rise * scale)
             xMove = (run * scale)
 
-            meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X + xMove, meObj.GetDrawPoint().Y + yMove))
+            meObj.SetMainPoint(New Point(meObj.GetDrawPoint(0).X + xMove, meObj.GetDrawPoint(0).Y + yMove))
         End If
 #End If
 
