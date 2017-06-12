@@ -197,6 +197,7 @@ Public Class CollisionMap 'Instantiate to make a collider map of lines, call the
         'Find list
         For index As Short = 0 To lstLstSections.Count - 1
             If lstLstSections(index).rect.Y = shtListIndexY And lstLstSections(index).rect.X = shtListIndexX Then
+                Debug.Print(index.ToString & " IS QUAD IN")
                 Return index
             End If
         Next
