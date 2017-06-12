@@ -12,24 +12,22 @@ Public Class OverDropObject
     Public lstPointPosition As New List(Of CircleBox) 'Holds all of the circles.
     Public imgMainImage As Image
 
-    Sub New(ByVal pnt As Point, ByVal img As Image)
-        lstPointPosition.Add(New CircleBox(pnt, 64)) 'TODO: this presets radius to 64
+    Sub New(ByVal pnt As Point, ByVal img As Image, ByVal shtRadius As Short)
+        lstPointPosition.Add(New CircleBox(pnt, shtRadius))
         imgMainImage = img
     End Sub
 
-    Public Function GetDrawPoint() As Point
+    Public Function GetDrawPoint(ByVal shtIndex As Short) As Point
         If lstPointPosition.Count >= 1 Then  'TODO: take this away in the future, this is debug
-            Return lstPointPosition(0).pnt
+            Return lstPointPosition(shtIndex).pnt
         End If
     End Function
 
-    Public Function GetMainPointMiddle() As CircleBox
-        If lstPointPosition.Count = 1 Then
-            Return New CircleBox(New Point(lstPointPosition(0).pnt.X + (imgMainImage.Width / 2), lstPointPosition(0).pnt.Y + (imgMainImage.Height / 2)), lstPointPosition(0).sngRadius)
-        ElseIf lstPointPosition.Count > 1 Then
-            Return lstPointPosition(0) 'TODO: NOT DONE YET, THIS SHOULD OUTPUT THE MAIN POINT (THAT THE OBJECT TURNS AROUND?)
+    Public Function GetMainPoint(ByVal shtIndex As Short) As CircleBox
+        If lstPointPosition.Count >= 1 Then  'TODO: take this away in the future, this is debug
+            'Return New CircleBox(New Point(lstPointPosition(shtIndex).pnt.X + (imgMainImage.Width / 2), lstPointPosition(shtIndex).pnt.Y + (imgMainImage.Height / 2)), lstPointPosition(shtIndex).sngRadius)
+            Return New CircleBox(New Point(lstPointPosition(shtIndex).pnt.X, lstPointPosition(shtIndex).pnt.Y), lstPointPosition(shtIndex).sngRadius)
         End If
-
     End Function
 
     Public Sub SetMainPoint(ByVal pntr As Point)

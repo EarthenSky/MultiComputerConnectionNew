@@ -53,6 +53,8 @@ Public Class Form1
 
     Public mapObj As CollisionMap
 
+    Public stw As New Stopwatch()
+
     Private Sub Form1_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
         imgEnemyOne = Image.FromFile(currentFileDirectory & "EnemyFOne.png")
         imgEnemyTwo = Image.FromFile(currentFileDirectory & "BugOne_MiniEnemy_SpriteSheet.png")
@@ -62,7 +64,7 @@ Public Class Form1
 
         mapObj = New CollisionMap(drawMap1, collisionMap1)
 
-        meObj = New OverDropObject(New Point(0, 0), imgEnemyOne)
+        meObj = New OverDropObject(New Point(0, 0), imgEnemyOne, 32)
         'lstAnimationObjects.Add(New AnimationObject(New Point(0, 0), imgEnemyTwo, 100))
 
         Me.KeyPreview = True
@@ -70,11 +72,15 @@ Public Class Form1
         Dim ListenerThread As New Thread(New ThreadStart(AddressOf Listening))
         tbxConnectionComputerName.Text = My.Computer.Name
         ListenerThread.Start()
+
+        stw.Start()
     End Sub
 
     Private Sub PaintMain(ByVal o As Object, ByVal e As PaintEventArgs) Handles pbxPlayArea.Paint
+        mapObj.Draw(e)  'Draw at the bottom.
+
         For Each obj As Player In otherComObj 'Draws otherComputer controlled objects
-            e.Graphics.DrawImage(imgEnemyTwo, New Rectangle(obj.GetDrawPoint().X, obj.GetDrawPoint().Y, meObj.imgMainImage.Width / 2, meObj.imgMainImage.Height / 2))
+            e.Graphics.DrawImage(imgEnemyTwo, New Rectangle(obj.GetDrawPoint(0).X, obj.GetDrawPoint(0).Y, meObj.imgMainImage.Width / 4, meObj.imgMainImage.Height / 4))
             'e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.GetDrawPoint().X, obj.GetDrawPoint().Y, obj.imgMainImage.Width, obj.imgMainImage.Height / 2))
         Next
 
@@ -84,18 +90,131 @@ Public Class Form1
                                      obj.lstAnimations(obj.pntCurrentImgIndexes.X)(obj.pntCurrentImgIndexes.Y), System.Drawing.GraphicsUnit.Pixel)
             Else
                 e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.GetMainPoint().pnt.X, obj.GetMainPoint().pnt.Y, 256, 256),
-                                     obj.lstAnimations(0)(0), System.Drawing.GraphicsUnit.Pixel)
+                                     obj.lstAnimations(0)(0), GraphicsUnit.Pixel)
             End If
         Next
 
-        e.Graphics.DrawImage(imgEnemyTwo, New Rectangle(meObj.GetDrawPoint().X, meObj.GetDrawPoint().Y, meObj.imgMainImage.Width / 2, meObj.imgMainImage.Height / 2))
+        e.Graphics.DrawImage(imgEnemyTwo, New Rectangle(meObj.GetDrawPoint(0).X, meObj.GetDrawPoint(0).Y, meObj.imgMainImage.Width / 4, meObj.imgMainImage.Height / 4))
         'Debug.Print(meObj.GetMainPointMiddle().pnt.ToString & ", hey this is pos")
     End Sub
 
-    Private blnWDown As Boolean = False
-    Private blnADown As Boolean = False
-    Private blnSDown As Boolean = False
-    Private blnDDown As Boolean = False
+    Private shtCharSpeed As Short = 5
+    Private Sub tmrGameUpdate_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles tmrGameUpdate.Tick
+        stw.Stop()
+        Me.Text = "Last tick, ms : " & Math.Round(stw.ElapsedMilliseconds / 10).ToString
+        stw.Restart()
+
+        If blnWDown = True Then
+            meObj.SetMainPoint(New Point(meObj.GetDrawPoint(0).X, meObj.GetDrawPoint(0).Y - shtCharSpeed))
+        End If
+        If blnADown = True Then
+            meObj.SetMainPoint(New Point(meObj.GetDrawPoint(0).X - shtCharSpeed, meObj.GetDrawPoint(0).Y))
+        End If
+        If blnSDown = True Then
+            meObj.SetMainPoint(New Point(meObj.GetDrawPoint(0).X, meObj.GetDrawPoint(0).Y + shtCharSpeed))
+        End If
+        If blnDDown = True Then
+            meObj.SetMainPoint(New Point(meObj.GetDrawPoint(0).X + shtCharSpeed, meObj.GetDrawPoint(0).Y))
+        End If
+
+        For Each plyr As Player In otherComObj
+            If plyr.blnWDown = True Then
+                plyr.SetMainPoint(New Point(plyr.GetDrawPoint(0).X, plyr.GetDrawPoint(0).Y - shtCharSpeed))
+            End If
+            If plyr.blnADown = True Then
+                plyr.SetMainPoint(New Point(plyr.GetDrawPoint(0).X - shtCharSpeed, plyr.GetDrawPoint(0).Y))
+            End If
+            If plyr.blnSDown = True Then
+                plyr.SetMainPoint(New Point(plyr.GetDrawPoint(0).X, plyr.GetDrawPoint(0).Y + shtCharSpeed))
+            End If
+            If plyr.blnDDown = True Then
+                plyr.SetMainPoint(New Point(plyr.GetDrawPoint(0).X + shtCharSpeed, plyr.GetDrawPoint(0).Y))
+            End If
+        Next
+
+        'Check other computer for collision with walls
+        For index As Short = 0 To otherComObj.Count - 1
+            Dim pntTemp As Point = mapObj.CheckCollision(otherComObj(index).GetMainPoint(0))
+            otherComObj(index).SetMainPoint(New Point(otherComObj(index).GetMainPoint(0).pnt.X + pntTemp.X, otherComObj(index).GetMainPoint(0).pnt.Y + pntTemp.Y))
+
+        Next
+
+        'Check main character for collision with the walls
+        Dim pntTemp2 As Point = mapObj.CheckCollision(meObj.GetMainPoint(0))
+        meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X + pntTemp2.X, meObj.GetMainPoint(0).pnt.Y + pntTemp2.Y))
+
+
+#If False Then
+        'Debug.Print(int.ToString & " is Distance")
+        If DistanceToSegment(meObj.GetMainPointMiddle().pnt, pntTest1, pntTest2) < meObj.GetMainPointMiddle().sngRadius Then
+            Dim x = DistanceToSegment(meObj.GetMainPointMiddle().pnt, pntTest1, pntTest2)
+            Dim higestPnt As Point
+            If pntTest1.Y > pntTest2.Y Then
+                higestPnt = pntTest2
+            Else
+                higestPnt = pntTest1
+            End If
+
+            Dim xMove, yMove As Short
+            'Works  1.5708 = 90 deg in radians
+            Dim bAngle As Single = 1.5708 - Math.Abs(FindAngle(pntTest1, pntTest2, meObj.GetMainPointMiddle().pnt, pntTest2))
+            'Works
+            Dim nSide As Single = Math.Cos(bAngle) * FindDistance(meObj.GetMainPointMiddle().pnt, pntTest2)
+            'Works
+            Dim lLength As Single = Math.Abs(meObj.GetMainPointMiddle().sngRadius - nSide)
+
+            Dim angleCDDL As Single = FindAngle(pntTest1, pntTest2, FindIntersectPoint(pntTest1, pntTest2, New Point(0, Short.MaxValue), New Point(0, Short.MinValue)), New Point(0, Integer.MaxValue))
+
+            'If meObj.GetMainPointMiddle().pnt.Y > higestPnt.Y And meObj.GetMainPointMiddle().pnt.X < higestPnt.X Then
+            If (blnADown = True Or blnWDown = True) And (blnSDown = False Or blnDDown = False) Then
+                angleCDDL = (1.5708 * 2) + angleCDDL
+            End If
+
+            Dim rise As Single = Math.Sin(angleCDDL) * meObj.GetMainPointMiddle().sngRadius
+
+            Dim run As Single = Math.Cos(angleCDDL) * meObj.GetMainPointMiddle().sngRadius
+
+            Dim scale As Single = lLength / meObj.GetMainPointMiddle().sngRadius
+
+            yMove = (rise * scale)
+            xMove = (run * scale)
+
+            meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X + xMove, meObj.GetDrawPoint().Y + yMove))
+        End If
+#End If
+
+        If otherComObj.Count > 0 AndAlso FindDistance(otherComObj(0).GetDrawPoint(0), meObj.GetDrawPoint(0)) < meObj.GetMainPoint(0).sngRadius + otherComObj(0).GetMainPoint(0).sngRadius Then
+            Dim xMove, yMove As Single
+
+            'Finds the rise and run of the two radius of the circles and scales it down to the overlap.
+
+            Dim run As Single = meObj.GetMainPoint(0).pnt.X - otherComObj(0).GetMainPoint(0).pnt.X
+            Dim rise As Single = meObj.GetMainPoint(0).pnt.Y - otherComObj(0).GetMainPoint(0).pnt.Y
+
+            Dim smallDis As Single = meObj.GetMainPoint(0).sngRadius + otherComObj(0).GetMainPoint(0).sngRadius - FindDistance(otherComObj(0).GetDrawPoint(0), meObj.GetDrawPoint(0))
+            Dim scaleFactor As Single = smallDis / (meObj.GetMainPoint(0).sngRadius + otherComObj(0).GetMainPoint(0).sngRadius)
+
+            xMove = run * scaleFactor / 2
+            yMove = rise * scaleFactor / 2
+
+            If (blnADown = True Or blnWDown = True) And (blnSDown = False Or blnDDown = False) Then
+                otherComObj(0).SetMainPoint(New Point(otherComObj(0).GetDrawPoint(0).X - xMove, otherComObj(0).GetDrawPoint(0).Y - yMove))
+                meObj.SetMainPoint(New Point(meObj.GetDrawPoint(0).X + xMove, meObj.GetDrawPoint(0).Y + yMove))
+            Else
+                otherComObj(0).SetMainPoint(New Point(otherComObj(0).GetDrawPoint(0).X - xMove, otherComObj(0).GetDrawPoint(0).Y - yMove))
+                meObj.SetMainPoint(New Point(meObj.GetDrawPoint(0).X + xMove, meObj.GetDrawPoint(0).Y + yMove))
+                'otherComObj(0).SetMainPoint(New Point(otherComObj(0).GetDrawPoint().X + xMove, otherComObj(0).GetDrawPoint().Y + yMove))
+                'meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X - xMove, meObj.GetDrawPoint().Y - yMove))
+            End If
+        End If
+
+        Refresh()
+    End Sub
+
+    Public blnWDown As Boolean = False
+    Public blnADown As Boolean = False
+    Public blnSDown As Boolean = False
+    Public blnDDown As Boolean = False
     Private Sub MoveButtonPress(ByVal o As System.Object, ByVal e As KeyEventArgs) Handles Me.KeyDown
         'Movement Keys
         If e.KeyCode = Keys.W And blnWDown = False Then
@@ -129,19 +248,19 @@ Public Class Form1
     Private Sub MoveButtonUp(ByVal o As System.Object, ByVal e As KeyEventArgs) Handles Me.KeyUp
         If e.KeyCode = Keys.W Then
             blnWDown = False
-            GiveKeyUpToFriends(My.Computer.Name, "W", meObj.GetDrawPoint())
+            GiveKeyUpToFriends(My.Computer.Name, "W", meObj.GetDrawPoint(0))
         End If
         If e.KeyCode = Keys.A Then
             blnADown = False
-            GiveKeyUpToFriends(My.Computer.Name, "A", meObj.GetDrawPoint())
+            GiveKeyUpToFriends(My.Computer.Name, "A", meObj.GetDrawPoint(0))
         End If
         If e.KeyCode = Keys.S Then
             blnSDown = False
-            GiveKeyUpToFriends(My.Computer.Name, "S", meObj.GetDrawPoint())
+            GiveKeyUpToFriends(My.Computer.Name, "S", meObj.GetDrawPoint(0))
         End If
         If e.KeyCode = Keys.D Then
             blnDDown = False
-            GiveKeyUpToFriends(My.Computer.Name, "D", meObj.GetDrawPoint())
+            GiveKeyUpToFriends(My.Computer.Name, "D", meObj.GetDrawPoint(0))
         End If
     End Sub
 
@@ -181,6 +300,7 @@ Public Class Form1
         Next
     End Sub
 
+    '#If False Then
     'Start Converted Internet
     Function sqr(ByVal x) As Integer
         Return x * x
@@ -231,102 +351,8 @@ Public Class Form1
     Function FindDistance(ByVal pnt1 As Point, ByVal pnt2 As Point) As Single
         Return Math.Sqrt(sqr(pnt2.X - pnt1.X) + sqr(pnt2.Y - pnt1.Y))
     End Function
-    'End Internet2
-
-    Private shtCharSpeed As Short = 7
-    Private Sub tmrGameUpdate_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles tmrGameUpdate.Tick
-        If blnWDown = True Then
-            meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X, meObj.GetDrawPoint().Y - shtCharSpeed))
-        End If
-        If blnADown = True Then
-            meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X - shtCharSpeed, meObj.GetDrawPoint().Y))
-        End If
-        If blnSDown = True Then
-            meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X, meObj.GetDrawPoint().Y + shtCharSpeed))
-        End If
-        If blnDDown = True Then
-            meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X + shtCharSpeed, meObj.GetDrawPoint().Y))
-        End If
-
-        For Each plyr As Player In otherComObj
-            If plyr.blnWDown = True Then
-                plyr.SetMainPoint(New Point(plyr.GetDrawPoint().X, plyr.GetDrawPoint().Y - shtCharSpeed))
-            End If
-            If plyr.blnADown = True Then
-                plyr.SetMainPoint(New Point(plyr.GetDrawPoint().X - shtCharSpeed, plyr.GetDrawPoint().Y))
-            End If
-            If plyr.blnSDown = True Then
-                plyr.SetMainPoint(New Point(plyr.GetDrawPoint().X, plyr.GetDrawPoint().Y + shtCharSpeed))
-            End If
-            If plyr.blnDDown = True Then
-                plyr.SetMainPoint(New Point(plyr.GetDrawPoint().X + shtCharSpeed, plyr.GetDrawPoint().Y))
-            End If
-        Next
-
-        'Debug.Print(int.ToString & " is Distance")
-        If DistanceToSegment(meObj.GetMainPointMiddle().pnt, pntTest1, pntTest2) < meObj.GetMainPointMiddle().sngRadius Then
-            Dim x = DistanceToSegment(meObj.GetMainPointMiddle().pnt, pntTest1, pntTest2)
-            Dim higestPnt As Point
-            If pntTest1.Y > pntTest2.Y Then
-                higestPnt = pntTest2
-            Else
-                higestPnt = pntTest1
-            End If
-
-            Dim xMove, yMove As Short
-            'Works  1.5708 = 90 deg in radians
-            Dim bAngle As Single = 1.5708 - Math.Abs(FindAngle(pntTest1, pntTest2, meObj.GetMainPointMiddle().pnt, pntTest2))
-            'Works
-            Dim nSide As Single = Math.Cos(bAngle) * FindDistance(meObj.GetMainPointMiddle().pnt, pntTest2)
-            'Works
-            Dim lLength As Single = Math.Abs(meObj.GetMainPointMiddle().sngRadius - nSide)
-
-            Dim angleCDDL As Single = FindAngle(pntTest1, pntTest2, FindIntersectPoint(pntTest1, pntTest2, New Point(0, Short.MaxValue), New Point(0, Short.MinValue)), New Point(0, Integer.MaxValue))
-
-            'If meObj.GetMainPointMiddle().pnt.Y > higestPnt.Y And meObj.GetMainPointMiddle().pnt.X < higestPnt.X Then
-            If (blnADown = True Or blnWDown = True) And (blnSDown = False Or blnDDown = False) Then
-                angleCDDL = (1.5708 * 2) + angleCDDL
-            End If
-
-            Dim rise As Single = Math.Sin(angleCDDL) * meObj.GetMainPointMiddle().sngRadius
-
-            Dim run As Single = Math.Cos(angleCDDL) * meObj.GetMainPointMiddle().sngRadius
-
-            Dim scale As Single = lLength / meObj.GetMainPointMiddle().sngRadius
-
-            yMove = (rise * scale)
-            xMove = (run * scale)
-
-            meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X + xMove, meObj.GetDrawPoint().Y + yMove))
-        End If
-
-        If otherComObj.Count > 0 AndAlso FindDistance(otherComObj(0).GetDrawPoint(), meObj.GetDrawPoint()) < meObj.GetMainPointMiddle().sngRadius + otherComObj(0).GetMainPointMiddle().sngRadius Then
-            Dim xMove, yMove As Single
-
-            'Finds the rise and run of the two radius of the circles and scales it down to the overlap.
-
-            Dim run As Single = meObj.GetMainPointMiddle().pnt.X - otherComObj(0).GetMainPointMiddle().pnt.X
-            Dim rise As Single = meObj.GetMainPointMiddle().pnt.Y - otherComObj(0).GetMainPointMiddle().pnt.Y
-
-            Dim smallDis As Single = meObj.GetMainPointMiddle.sngRadius + otherComObj(0).GetMainPointMiddle().sngRadius - FindDistance(otherComObj(0).GetDrawPoint(), meObj.GetDrawPoint())
-            Dim scaleFactor As Single = smallDis / (meObj.GetMainPointMiddle.sngRadius + otherComObj(0).GetMainPointMiddle().sngRadius)
-
-            xMove = run * scaleFactor / 2
-            yMove = rise * scaleFactor / 2
-
-            If (blnADown = True Or blnWDown = True) And (blnSDown = False Or blnDDown = False) Then
-                otherComObj(0).SetMainPoint(New Point(otherComObj(0).GetDrawPoint().X - xMove, otherComObj(0).GetDrawPoint().Y - yMove))
-                meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X + xMove, meObj.GetDrawPoint().Y + yMove))
-            Else
-                otherComObj(0).SetMainPoint(New Point(otherComObj(0).GetDrawPoint().X - xMove, otherComObj(0).GetDrawPoint().Y - yMove))
-                meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X + xMove, meObj.GetDrawPoint().Y + yMove))
-                'otherComObj(0).SetMainPoint(New Point(otherComObj(0).GetDrawPoint().X + xMove, otherComObj(0).GetDrawPoint().Y + yMove))
-                'meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X - xMove, meObj.GetDrawPoint().Y - yMove))
-            End If
-        End If
-
-        Refresh()
-    End Sub
+    'End Converted Internet
+    '#End If
 
     'Main LAN Stuff vvv
     Private Sub Listening()  'starts listening for info from other com.
@@ -550,7 +576,7 @@ Public Class Form1
     End Sub
 
     Private Sub AddComputerToList(ByVal strName As String)
-        otherComObj.Add(New Player(New Point(0, 0), imgEnemyOne))  'Adds a new character to the screen
+        otherComObj.Add(New Player(New Point(0, 0), imgEnemyOne, 32))  'Adds a new character to the screen
         lstComputers.Add(strName)
         lbxComputersConnectedTo.Items.Add(strName)
     End Sub
