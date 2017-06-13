@@ -11,6 +11,7 @@ End Structure
 Public Class OverDropObject
     Public lstPointPosition As New List(Of CircleBox) 'Holds all of the circles.
     Public imgMainImage As Image
+    Public pntLastPos As Point
 
     Sub New(ByVal pnt As Point, ByVal img As Image, ByVal shtRadius As Short)
         lstPointPosition.Add(New CircleBox(pnt, shtRadius))
@@ -30,7 +31,8 @@ Public Class OverDropObject
         End If
     End Function
 
-    Public Sub SetMainPoint(ByVal pntr As Point)
-        lstPointPosition(0) = New CircleBox(pntr, lstPointPosition(0).sngRadius)
+    Public Sub SetMainPoint(ByVal pnt As Point)
+        pntLastPos = lstPointPosition(0).pnt
+        lstPointPosition(0) = New CircleBox(pnt, lstPointPosition(0).sngRadius)
     End Sub
 End Class

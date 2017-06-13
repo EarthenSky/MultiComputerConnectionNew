@@ -46,7 +46,7 @@ Public Class Form1
     Public lstAnimationObjects As New List(Of AnimationObject)
 
     Public pntTest1 As New Point(300, 200)
-    Public pntTest2 As New Point(600, 500)
+    Public pntTest2 As New Point(400, 300)
 
     Public collisionMap1 As Image
     Public drawMap1 As Image
@@ -95,6 +95,9 @@ Public Class Form1
         Next
 
         e.Graphics.DrawImage(imgEnemyTwo, New Rectangle(meObj.GetDrawPoint(0).X, meObj.GetDrawPoint(0).Y, meObj.imgMainImage.Width / 4, meObj.imgMainImage.Height / 4))
+
+        e.Graphics.DrawImage(imgEnemyTwo, New Rectangle(pntTest1.X, pntTest1.Y, meObj.imgMainImage.Width / 8, meObj.imgMainImage.Height / 8))
+        e.Graphics.DrawImage(imgEnemyTwo, New Rectangle(pntTest2.X, pntTest2.Y, meObj.imgMainImage.Width / 8, meObj.imgMainImage.Height / 8))
         'Debug.Print(meObj.GetMainPointMiddle().pnt.ToString & ", hey this is pos")
     End Sub
 
@@ -134,38 +137,52 @@ Public Class Form1
 
         'Check other computer for collision with walls
         For index As Short = 0 To otherComObj.Count - 1
-            Dim pntTemp As Point = mapObj.CheckCollision(otherComObj(index).GetMainPoint(0))
+            Dim pntTemp As Point = mapObj.CheckCollision(otherComObj(index).GetMainPoint(0), otherComObj(index).pntLastPos)
             otherComObj(index).SetMainPoint(New Point(otherComObj(index).GetMainPoint(0).pnt.X + pntTemp.X, otherComObj(index).GetMainPoint(0).pnt.Y + pntTemp.Y))
 
         Next
 
         'Check main character for collision with the walls
-        Dim pntTemp2 As Point = mapObj.CheckCollision(meObj.GetMainPoint(0))
+        Dim pntTemp2 As Point = mapObj.CheckCollision(meObj.GetMainPoint(0), meObj.pntLastPos)
         meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X + pntTemp2.X, meObj.GetMainPoint(0).pnt.Y + pntTemp2.Y))
 
-
 #If False Then
+
         'Debug.Print(int.ToString & " is Distance")
         If DistanceToSegment(meObj.GetMainPoint(0).pnt, pntTest1, pntTest2) < meObj.GetMainPoint(0).sngRadius Then
 
+            Dim pnt1 As Point
+            Dim pnt2 As Point
+            If pntTest1.X > pntTest2.X Then
+                pnt1 = pntTest1
+                pnt2 = pntTest2
+            Else
+                pnt1 = pntTest1
+                pnt2 = pntTest2
+            End If
+
             Dim xMove, yMove As Short
             'Works  1.5708 = 90 deg in radians
-            Dim bAngle As Single = 1.5708 - Math.Abs(FindAngle(pntTest1, pntTest2, meObj.GetMainPoint(0).pnt, pntTest2))
-            'Works
-            Dim nSide As Single = Math.Cos(bAngle) * FindDistance(meObj.GetMainPoint(0).pnt, pntTest2)
+            Dim bAngle As Single = 1.5708 - Math.Abs(FindAngle(pnt1, pnt2, meObj.GetMainPoint(0).pnt, pnt2))
+            Debug.Print(bAngle & "=b, " & pnt1.ToString & "=pnt1, " & pnt2.ToString & "=pnt2, " & meObj.GetMainPoint(0).pnt.ToString & "=cbx.pnt.")
+            Dim nSide As Single = Math.Cos(bAngle) * FindDistance(meObj.GetMainPoint(0).pnt, pnt2)
             'Works
             Dim lLength As Single = Math.Abs(meObj.GetMainPoint(0).sngRadius - nSide)
 
-            Dim angleCDDL As Single = FindAngle(pntTest1, pntTest2, FindIntersectPoint(pntTest1, pntTest2, New Point(0, Short.MaxValue), New Point(0, Short.MinValue)), New Point(0, Short.MaxValue))
+            Dim angleCDDL As Single = FindAngle(pnt1, pnt2, FindIntersectPoint(pnt1, pnt2, New Point(0, Short.MaxValue), New Point(0, Short.MinValue)), New Point(0, Short.MaxValue))
 
-            If angleCDDL < -1.5708 Then
-                If (blnADown = True Or blnWDown = True) And (blnSDown = False Or blnDDown = False) Then
+            Dim shtSideValue As Short = (meObj.pntLastPos.X - pnt1.X) * (pnt2.Y - pnt1.Y) - (meObj.pntLastPos.Y - pnt1.Y) * (pnt2.X - pnt1.X)  'Negitave and positive says what side the point is on, thanks internet code.
+            Debug.Print(shtSideValue)
+            If pnt1.Y < pnt2.Y Then
+                If shtSideValue < 0 Then
                     angleCDDL = (1.5708 * 2) + angleCDDL
                 End If
+                Me.Text = "1" 'TODO: TYPE 1
             Else
-                If (blnDDown = True Or blnWDown = True) And (blnSDown = False Or blnADown = False) Then
+                If shtSideValue < 0 Then
                     angleCDDL = (1.5708 * 2) + angleCDDL
                 End If
+                Me.Text = "2"  'TODO: TYPE 2 
             End If
 
             Dim rise As Single = Math.Sin(angleCDDL) * meObj.GetMainPoint(0).sngRadius
@@ -235,11 +252,11 @@ Public Class Form1
 
         'Debug keys
         If e.KeyCode = Keys.E Then
-            lstAnimationObjects(0).PlayAnimation(1)
+            'lstAnimationObjects(0).PlayAnimation(1)
         ElseIf e.KeyCode = Keys.Up Then
-            lstAnimationObjects(0).PlayAnimation(0)
+            'lstAnimationObjects(0).PlayAnimation(0)
         ElseIf e.KeyCode = Keys.T Then
-            lstAnimationObjects(0).StopAnimation()
+            'lstAnimationObjects(0).StopAnimation()
         End If
     End Sub
 

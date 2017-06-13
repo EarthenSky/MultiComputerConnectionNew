@@ -38,6 +38,7 @@ Public Class CollisionMap 'Instantiate to make a collider map of lines, call the
     Private imgDrawMap As Image
 
     Sub New(ByVal drawMap As Image, ByVal colMap As Image)
+        Debug.Print(FindMidPoint(New Point(1, 3), New Point(3, 1)).ToString())
         LoadMap(colMap)
         imgDrawMap = drawMap
     End Sub
@@ -115,18 +116,34 @@ Public Class CollisionMap 'Instantiate to make a collider map of lines, call the
     End Sub
 
     Dim shtColliderMapScale As Short = 8
+    Dim shtExtraLineLength As Single = 1.5
     Public Sub MakeLines()
         For index As Short = 0 To lstLstSections.Count - 1  'Each loop is making lines inside a section.
             SortByVal(lstLstSections(index).lstPnt)
             For jIndex As Short = lstLstSections(index).lstPnt.Count - 1 To 1 Step -1 'Each loop makes a line
-                lstLstSections(index).lstLines.Add(New Line(New Point(lstLstSections(index).lstPnt(jIndex).pnt.X * shtColliderMapScale, lstLstSections(index).lstPnt(jIndex).pnt.Y * shtColliderMapScale),
-                                                            New Point(lstLstSections(index).lstPnt(jIndex - 1).pnt.X * shtColliderMapScale, lstLstSections(index).lstPnt(jIndex - 1).pnt.Y * shtColliderMapScale)))
-
+                lstLstSections(index).lstLines.Add(New Line(New Point(lstLstSections(index).lstPnt(jIndex).pnt.X * shtColliderMapScale,
+                                                                      lstLstSections(index).lstPnt(jIndex).pnt.Y * shtColliderMapScale),
+                                                            New Point(lstLstSections(index).lstPnt(jIndex - 1).pnt.X * shtColliderMapScale,
+                                                                      lstLstSections(index).lstPnt(jIndex - 1).pnt.Y * shtColliderMapScale)))
             Next
-            lstLstSections(index).lstLines.Add(New Line(New Point(lstLstSections(index).lstPnt(lstLstSections(index).lstPnt.Count - 1).pnt.X * shtColliderMapScale, lstLstSections(index).lstPnt(lstLstSections(index).lstPnt.Count - 1).pnt.Y * shtColliderMapScale),
-                                                            New Point(lstLstSections(index).lstPnt(0).pnt.X * shtColliderMapScale, lstLstSections(index).lstPnt(0).pnt.Y * shtColliderMapScale)))
+            lstLstSections(index).lstLines.Add(New Line(New Point(lstLstSections(index).lstPnt(lstLstSections(index).lstPnt.Count - 1).pnt.X * shtColliderMapScale,
+                                                                  lstLstSections(index).lstPnt(lstLstSections(index).lstPnt.Count - 1).pnt.Y * shtColliderMapScale),
+                                                            New Point(lstLstSections(index).lstPnt(0).pnt.X * shtColliderMapScale,
+                                                                      lstLstSections(index).lstPnt(0).pnt.Y * shtColliderMapScale)))
         Next
     End Sub
+
+    ' Public Sub ScaleLine(ByRef line As Line) ' Nope
+    '   Dim pnt1 As Point = line.pnt1
+    'Dim pnt2 As Point = line.pnt2
+    '
+    '   Dim scaled1 As Point = pnt1 - pnt2
+    'Dim scaled2 As Point = pnt1 - pnt2
+    '
+    '    scaled1 = New Point(scaled1.X * shtExtraLineLength, scaled1.Y * shtExtraLineLength)
+    '
+    '    line = New Line(pnt1, pnt2)
+    'End Sub
 
     Private Sub SortByVal(ByRef lst As List(Of PixelPoint))  '++Better than my other sort
         'makes temp equal to the list box
@@ -160,19 +177,19 @@ Public Class CollisionMap 'Instantiate to make a collider map of lines, call the
 
     End Sub
 
-    Public Function CheckCollision(ByVal cbx As CircleBox) As Point 'Call this to check collision between a circle and the map.  'Sends back distance to move.
+    Public Function CheckCollision(ByVal cbx As CircleBox, ByVal pntLast As Point) As Point 'Call this to check collision between a circle and the map.  'Sends back distance to move.
         Dim xPush As Short = 0
         Dim yPush As Short = 0
 
-        CollisionLoop(cbx, xPush, yPush)
+        CollisionLoop(cbx, xPush, yPush, pntLast)
 
         Return New Point(xPush, yPush)
     End Function
 
-    Public Sub CollisionLoop(ByVal cbx As CircleBox, ByRef xPush As Short, ByRef yPush As Short)
+    Public Sub CollisionLoop(ByVal cbx As CircleBox, ByRef xPush As Short, ByRef yPush As Short, ByVal pntLast As Point)
         For index As Short = 0 To lstLstSections(FindSection(cbx)).lstLines.Count - 1  'Loops through all of the lines in the specified list.
             If DistanceToSegment(cbx.pnt, lstLstSections(FindSection(cbx)).lstLines(index).pnt1, lstLstSections(FindSection(cbx)).lstLines(index).pnt2) < cbx.sngRadius Then
-                Dim temp As Point = PushBack(cbx, lstLstSections(FindSection(cbx)).lstLines(index).pnt1, lstLstSections(FindSection(cbx)).lstLines(index).pnt2)
+                Dim temp As Point = PushBack(cbx, lstLstSections(FindSection(cbx)).lstLines(index).pnt1, lstLstSections(FindSection(cbx)).lstLines(index).pnt2, pntLast)
                 xPush += temp.X
                 yPush += temp.Y
             End If
@@ -208,11 +225,10 @@ Public Class CollisionMap 'Instantiate to make a collider map of lines, call the
         Return -1 'Fail state
     End Function
 
-    Public Function PushBack(ByVal cbx As CircleBox, ByVal pnt1In As Point, ByVal pnt2In As Point) As Point  'Uses stupid math I though of to push the circle back and it works.  I have a diagram somewhere...
-
+    Public Function PushBack(ByVal cbx As CircleBox, ByVal pnt1In As Point, ByVal pnt2In As Point, ByVal pntLast As Point) As Point  'Uses stupid math I though of to push the circle back and it works.  I have a diagram somewhere...
         Dim pnt1 As Point
         Dim pnt2 As Point
-        If pnt1In.Y > pnt2In.Y Then
+        If pnt1In.X > pnt2In.X Then
             pnt1 = pnt1In
             pnt2 = pnt2In
         Else
@@ -220,32 +236,29 @@ Public Class CollisionMap 'Instantiate to make a collider map of lines, call the
             pnt2 = pnt1In
         End If
 
-        Dim xMove, yMove As Short  'I think in this situation this looks a bit better than a point.
+        Dim xMove, yMove As Single  'I think in this situation this looks a bit better than a point.
         '1.5708 = 90 deg in radians
         Dim bAngle As Single = 1.5708 - Math.Abs(FindAngle(pnt1, pnt2, cbx.pnt, pnt2))
-
+        Debug.Print(bAngle & "=b, " & pnt1.ToString & "=pnt1, " & pnt2.ToString & "=pnt2, " & cbx.pnt.ToString & "=cbx.pnt.")
         Dim nSide As Single = Math.Cos(bAngle) * FindDistance(cbx.pnt, pnt2)
 
         Dim lLength As Single = Math.Abs(cbx.sngRadius - nSide)
 
         Dim angleCDDL As Single = FindAngle(pnt1, pnt2, FindIntersectPoint(pnt1, pnt2, New Point(0, Short.MaxValue), New Point(0, Short.MinValue)), New Point(0, Short.MaxValue))
 
-        If pnt1.X > pnt2.X Then
-            If (Form1.blnADown = True Or Form1.blnWDown = True) And (Form1.blnSDown = False Or Form1.blnDDown = False) Then
-                angleCDDL = (1.5708 * 2) + angleCDDL
-            End If
-            Form1.Text = "2"  'TODO: TYPE 2
-        Else
-            If (Form1.blnDDown = True Or Form1.blnWDown = True) And (Form1.blnSDown = False Or Form1.blnADown = False) Then
+        Dim shtSideValue As Short = (pntLast.X - pnt1.X) * (pnt2.Y - pnt1.Y) - (pntLast.Y - pnt1.Y) * (pnt2.X - pnt1.X)  'Negitave and positive says what side the point is on, thanks internet code.
+        'Debug.Print(shtSideValue)
+        If pnt1.Y < pnt2.Y Then
+            If shtSideValue < 0 Then
                 angleCDDL = (1.5708 * 2) + angleCDDL
             End If
             Form1.Text = "1" 'TODO: TYPE 1
+        Else
+            If shtSideValue < 0 Then
+                angleCDDL = (1.5708 * 2) + angleCDDL
+            End If
+            Form1.Text = "2"  'TODO: TYPE 2 
         End If
-
-        Debug.Print(Form1.blnWDown.ToString() & " = WDown")
-        Debug.Print(Form1.blnADown.ToString() & " = ADown")
-        Debug.Print(Form1.blnSDown.ToString() & " = SDown")
-        Debug.Print(Form1.blnDDown.ToString() & " = DDown")
 
         Dim sngRise As Single = Math.Sin(angleCDDL) * cbx.sngRadius
 
@@ -257,6 +270,13 @@ Public Class CollisionMap 'Instantiate to make a collider map of lines, call the
         xMove = (sngRun * sngScale)
 
         Return New Point(xMove, yMove)
+    End Function
+
+    Public Function FindMidPoint(ByVal pnt1 As Point, ByVal pnt2 As Point) As Point  'Finds the midpoint between two points.
+        Dim xDiff As Short = (pnt1.X - pnt2.X) / 2
+        Dim yDiff As Short = (pnt1.Y - pnt2.Y) / 2
+
+        Return New Point(pnt1.X - xDiff, pnt1.Y - yDiff)
     End Function
 
     'Start Converted Internet
@@ -292,7 +312,7 @@ Public Class CollisionMap 'Instantiate to make a collider map of lines, call the
         Dim p As New Point
         'check whether the two line parallel
         If dy1 * dx2 = dy2 * dx1 Then
-            MessageBox.Show("no point")
+            'MessageBox.Show("no point")
             'Return P with a specific data
         Else
             Dim x As Double = ((C.Y - A.Y) * dx1 * dx2 + dy1 * dx2 * A.X - dy2 * dx1 * C.X) / (dy1 * dx2 - dy2 * dx1)
@@ -303,7 +323,7 @@ Public Class CollisionMap 'Instantiate to make a collider map of lines, call the
     End Function
 
     Function FindAngle(ByVal l11 As Point, ByVal l12 As Point, ByVal l21 As Point, ByVal l22 As Point) As Double
-        Return (Math.Atan2(l12.Y - l11.Y, l12.X - l11.X) - Math.Atan2(l22.Y - l21.Y, l22.X - l21.X)) '* (180 / Math.PI)
+        Return (Math.Atan2(l12.Y - l11.Y, l12.X - l11.X) - Math.Atan2(l22.Y - l21.Y, l22.X - l21.X))
     End Function
 
     Function FindDistance(ByVal pnt1 As Point, ByVal pnt2 As Point) As Single
@@ -313,10 +333,11 @@ Public Class CollisionMap 'Instantiate to make a collider map of lines, call the
 
     Dim shtDrawMapScale As Short = 8
     Public Sub Draw(ByVal e As PaintEventArgs)  'Call this to draw the map to the screen
-        e.Graphics.DrawImage(imgDrawMap, New Rectangle(0, 0, imgDrawMap.Width * shtDrawMapScale, imgDrawMap.Height * shtDrawMapScale))
+        e.Graphics.DrawImage(imgDrawMap, New Rectangle(Form1.pbxPlayArea.Location().X * 3, Form1.pbxPlayArea.Location().Y * 2, imgDrawMap.Width * shtDrawMapScale, imgDrawMap.Height * shtDrawMapScale))
         For Each obj As Line In lstLstSections(0).lstLines
             e.Graphics.DrawImage(imgDrawMap, New Rectangle(obj.pnt1.X, obj.pnt1.Y, imgDrawMap.Width / 4, imgDrawMap.Height / 4))
             e.Graphics.DrawImage(imgDrawMap, New Rectangle(obj.pnt2.X, obj.pnt2.Y, imgDrawMap.Width / 4, imgDrawMap.Height / 4))
+            e.Graphics.DrawImage(imgDrawMap, New Rectangle(FindMidPoint(obj.pnt1, obj.pnt2).X, FindMidPoint(obj.pnt1, obj.pnt2).Y, imgDrawMap.Width / 8, imgDrawMap.Height / 8))
         Next
     End Sub
 End Class
