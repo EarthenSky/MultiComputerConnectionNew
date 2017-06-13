@@ -35,6 +35,7 @@ Public Class Form1
     Private currentFileDirectory As String = Directory.GetCurrentDirectory.Remove(Directory.GetCurrentDirectory.IndexOf("\bin\Debug"), 10) + "\"
     Private imgEnemyOne As Image
     Private imgEnemyTwo As Image
+    Public imgCircle As Image
 
     Private listener As New TcpListener(5019)
     Private client As New TcpClient
@@ -59,13 +60,15 @@ Public Class Form1
         imgEnemyOne = Image.FromFile(currentFileDirectory & "EnemyFOne.png")
         imgEnemyTwo = Image.FromFile(currentFileDirectory & "BugOne_MiniEnemy_SpriteSheet.png")
 
+        imgCircle = Image.FromFile(currentFileDirectory & "Circle.png")
+
         drawMap1 = Image.FromFile(currentFileDirectory & "ColliderMap2Draw.png")
         collisionMap1 = Image.FromFile(currentFileDirectory & "ColliderMap2.png")
 
         mapObj = New CollisionMap(drawMap1, collisionMap1)
 
         meObj = New OverDropObject(New Point(200, 200), imgEnemyOne, 32)
-        'lstAnimationObjects.Add(New AnimationObject(New Point(0, 0), imgEnemyTwo, 100))
+        lstAnimationObjects.Add(New AnimationObject(New Point(0, 0), imgEnemyTwo, 32, 100))
 
         Me.KeyPreview = True
 
@@ -86,22 +89,22 @@ Public Class Form1
 
         For Each obj As AnimationObject In lstAnimationObjects 'Draws animations
             If obj.pntCurrentImgIndexes.X <> -1 Then
-                e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.GetMainPoint().pnt.X, obj.GetMainPoint().pnt.Y, 256, 256),
+                e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.GetMainPoint(0).pnt.X, obj.GetMainPoint(0).pnt.Y, 256, 256),
                                      obj.lstAnimations(obj.pntCurrentImgIndexes.X)(obj.pntCurrentImgIndexes.Y), System.Drawing.GraphicsUnit.Pixel)
             Else
-                e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.GetMainPoint().pnt.X, obj.GetMainPoint().pnt.Y, 256, 256),
+                e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.GetMainPoint(0).pnt.X, obj.GetMainPoint(0).pnt.Y, 256, 256),
                                      obj.lstAnimations(0)(0), GraphicsUnit.Pixel)
             End If
         Next
 
-        e.Graphics.DrawImage(imgEnemyTwo, New Rectangle(meObj.GetDrawPoint(0).X, meObj.GetDrawPoint(0).Y, meObj.imgMainImage.Width / 4, meObj.imgMainImage.Height / 4))
+        e.Graphics.DrawImage(imgCircle, New Rectangle(meObj.GetDrawPoint(0).X, meObj.GetDrawPoint(0).Y, meObj.imgMainImage.Width / 4, meObj.imgMainImage.Height / 4))
 
-        e.Graphics.DrawImage(imgEnemyTwo, New Rectangle(pntTest1.X, pntTest1.Y, meObj.imgMainImage.Width / 8, meObj.imgMainImage.Height / 8))
-        e.Graphics.DrawImage(imgEnemyTwo, New Rectangle(pntTest2.X, pntTest2.Y, meObj.imgMainImage.Width / 8, meObj.imgMainImage.Height / 8))
+        'e.Graphics.DrawImage(imgCircle, New Rectangle(pntTest1.X, pntTest1.Y, meObj.imgMainImage.Width / 8, meObj.imgMainImage.Height / 8))
+        'e.Graphics.DrawImage(imgCircle, New Rectangle(pntTest2.X, pntTest2.Y, meObj.imgMainImage.Width / 8, meObj.imgMainImage.Height / 8))
         'Debug.Print(meObj.GetMainPointMiddle().pnt.ToString & ", hey this is pos")
     End Sub
 
-    Private shtCharSpeed As Short = 5
+    Private shtCharSpeed As Short = 15
     Private Sub tmrGameUpdate_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles tmrGameUpdate.Tick
         stw.Stop()
         Me.Text = "Last tick, ms : " & Math.Round(stw.ElapsedMilliseconds / 10).ToString
@@ -252,11 +255,11 @@ Public Class Form1
 
         'Debug keys
         If e.KeyCode = Keys.E Then
-            'lstAnimationObjects(0).PlayAnimation(1)
+            lstAnimationObjects(0).PlayAnimation(1)
         ElseIf e.KeyCode = Keys.Up Then
-            'lstAnimationObjects(0).PlayAnimation(0)
+            lstAnimationObjects(0).PlayAnimation(0)
         ElseIf e.KeyCode = Keys.T Then
-            'lstAnimationObjects(0).StopAnimation()
+            lstAnimationObjects(0).StopAnimation()
         End If
     End Sub
 

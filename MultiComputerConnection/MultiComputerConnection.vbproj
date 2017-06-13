@@ -125,6 +125,7 @@
   <ItemGroup>
     <Content Include="126%283 - Chaosotacitc Skies%29.wav" />
     <Content Include="BugOne_MiniEnemy_SpriteSheet.png" />
+    <Content Include="Circle.png" />
     <Content Include="ColliderMap.png" />
     <Content Include="ColliderMap2.png" />
     <Content Include="ColliderMap2Draw.png" />

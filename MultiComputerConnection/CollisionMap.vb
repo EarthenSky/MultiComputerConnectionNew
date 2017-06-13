@@ -46,6 +46,8 @@ Public Class CollisionMap 'Instantiate to make a collider map of lines, call the
     Private Sub LoadMap(ByVal colMap As Image)
         Dim bmpCollision As New Bitmap(colMap)
 
+
+        'Im not really using the green blue things, depricated. (spelling?)
         Dim shtLastPoint As Short = 0
 
         'Check for Green
@@ -238,7 +240,12 @@ Public Class CollisionMap 'Instantiate to make a collider map of lines, call the
 
         Dim xMove, yMove As Single  'I think in this situation this looks a bit better than a point.
         '1.5708 = 90 deg in radians
-        Dim bAngle As Single = 1.5708 - Math.Abs(FindAngle(pnt1, pnt2, cbx.pnt, pnt2))
+
+        Dim beforeB As Single = Math.Abs(FindAngle(pnt1, pnt2, cbx.pnt, pnt2))
+        If beforeB > 1.5708 * 1.5 Then
+            beforeB -= 1.5708 * 2  'IDK why but this sort of fixes the weird bug.
+        End If
+        Dim bAngle As Single = 1.5708 - beforeB
         Debug.Print(bAngle & "=b, " & pnt1.ToString & "=pnt1, " & pnt2.ToString & "=pnt2, " & cbx.pnt.ToString & "=cbx.pnt.")
         Dim nSide As Single = Math.Cos(bAngle) * FindDistance(cbx.pnt, pnt2)
 
@@ -333,11 +340,11 @@ Public Class CollisionMap 'Instantiate to make a collider map of lines, call the
 
     Dim shtDrawMapScale As Short = 8
     Public Sub Draw(ByVal e As PaintEventArgs)  'Call this to draw the map to the screen
-        e.Graphics.DrawImage(imgDrawMap, New Rectangle(Form1.pbxPlayArea.Location().X * 3, Form1.pbxPlayArea.Location().Y * 2, imgDrawMap.Width * shtDrawMapScale, imgDrawMap.Height * shtDrawMapScale))
+        e.Graphics.DrawImage(imgDrawMap, New Rectangle(Form1.pbxPlayArea.Location().X * 2.5, Form1.pbxPlayArea.Location().Y * 2.3, imgDrawMap.Width * shtDrawMapScale, imgDrawMap.Height * shtDrawMapScale))
         For Each obj As Line In lstLstSections(0).lstLines
-            e.Graphics.DrawImage(imgDrawMap, New Rectangle(obj.pnt1.X, obj.pnt1.Y, imgDrawMap.Width / 4, imgDrawMap.Height / 4))
-            e.Graphics.DrawImage(imgDrawMap, New Rectangle(obj.pnt2.X, obj.pnt2.Y, imgDrawMap.Width / 4, imgDrawMap.Height / 4))
-            e.Graphics.DrawImage(imgDrawMap, New Rectangle(FindMidPoint(obj.pnt1, obj.pnt2).X, FindMidPoint(obj.pnt1, obj.pnt2).Y, imgDrawMap.Width / 8, imgDrawMap.Height / 8))
+            'e.Graphics.DrawImage(imgDrawMap, New Rectangle(obj.pnt1.X, obj.pnt1.Y, imgDrawMap.Width / 4, imgDrawMap.Height / 4))
+            'e.Graphics.DrawImage(imgDrawMap, New Rectangle(obj.pnt2.X, obj.pnt2.Y, imgDrawMap.Width / 4, imgDrawMap.Height / 4))
+            ' e.Graphics.DrawImage(imgDrawMap, New Rectangle(FindMidPoint(obj.pnt1, obj.pnt2).X, FindMidPoint(obj.pnt1, obj.pnt2).Y, imgDrawMap.Width / 8, imgDrawMap.Height / 8))
         Next
     End Sub
 End Class
