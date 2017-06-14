@@ -10,6 +10,8 @@
     Public blnSDown As Boolean = False
     Public blnDDown As Boolean = False
 
+    Public pntMyMousePos As Point
+
     Public Sub SetKeyPressed(ByVal key As Char)
         If key = "W" Then
             blnWDown = True

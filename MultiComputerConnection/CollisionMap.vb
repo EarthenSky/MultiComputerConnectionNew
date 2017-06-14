@@ -189,13 +189,21 @@ Public Class CollisionMap 'Instantiate to make a collider map of lines, call the
     End Function
 
     Public Sub CollisionLoop(ByVal cbx As CircleBox, ByRef xPush As Short, ByRef yPush As Short, ByVal pntLast As Point)
+        Dim shtDiv As Short = 0
+
         For index As Short = 0 To lstLstSections(FindSection(cbx)).lstLines.Count - 1  'Loops through all of the lines in the specified list.
             If DistanceToSegment(cbx.pnt, lstLstSections(FindSection(cbx)).lstLines(index).pnt1, lstLstSections(FindSection(cbx)).lstLines(index).pnt2) < cbx.sngRadius Then
                 Dim temp As Point = PushBack(cbx, lstLstSections(FindSection(cbx)).lstLines(index).pnt1, lstLstSections(FindSection(cbx)).lstLines(index).pnt2, pntLast)
                 xPush += temp.X
                 yPush += temp.Y
+                shtDiv += 1
             End If
         Next
+
+        If shtDiv > 0 Then
+            xPush /= shtDiv
+            yPush /= shtDiv
+        End If
     End Sub
 
     Public Function FindSection(ByVal cbx As CircleBox) As Short 'Returns "Index" of list.
@@ -253,7 +261,7 @@ Public Class CollisionMap 'Instantiate to make a collider map of lines, call the
 
         Dim angleCDDL As Single = FindAngle(pnt1, pnt2, FindIntersectPoint(pnt1, pnt2, New Point(0, Short.MaxValue), New Point(0, Short.MinValue)), New Point(0, Short.MaxValue))
 
-        Dim shtSideValue As Short = (pntLast.X - pnt1.X) * (pnt2.Y - pnt1.Y) - (pntLast.Y - pnt1.Y) * (pnt2.X - pnt1.X)  'Negitave and positive says what side the point is on, thanks internet code.
+        Dim shtSideValue As Long = (pntLast.X - pnt1.X) * (pnt2.Y - pnt1.Y) - (pntLast.Y - pnt1.Y) * (pnt2.X - pnt1.X)  'Negitave and positive says what side the point is on, thanks internet code.
         'Debug.Print(shtSideValue)
         If pnt1.Y < pnt2.Y Then
             If shtSideValue < 0 Then

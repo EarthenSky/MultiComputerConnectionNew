@@ -80,13 +80,6 @@ Public Class Form1
     End Sub
 
     Private Sub PaintMain(ByVal o As Object, ByVal e As PaintEventArgs) Handles pbxPlayArea.Paint
-        mapObj.Draw(e)  'Draw at the bottom.
-
-        For Each obj As Player In otherComObj 'Draws otherComputer controlled objects
-            e.Graphics.DrawImage(imgEnemyTwo, New Rectangle(obj.GetDrawPoint(0).X, obj.GetDrawPoint(0).Y, meObj.imgMainImage.Width / 4, meObj.imgMainImage.Height / 4))
-            'e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.GetDrawPoint().X, obj.GetDrawPoint().Y, obj.imgMainImage.Width, obj.imgMainImage.Height / 2))
-        Next
-
         For Each obj As AnimationObject In lstAnimationObjects 'Draws animations
             If obj.pntCurrentImgIndexes.X <> -1 Then
                 e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.GetMainPoint(0).pnt.X, obj.GetMainPoint(0).pnt.Y, 256, 256),
@@ -97,6 +90,12 @@ Public Class Form1
             End If
         Next
 
+        mapObj.Draw(e)  'Draw at the bottom.
+
+        For Each obj As Player In otherComObj 'Draws otherComputer controlled objects
+            e.Graphics.DrawImage(imgEnemyTwo, New Rectangle(obj.GetDrawPoint(0).X, obj.GetDrawPoint(0).Y, meObj.imgMainImage.Width / 4, meObj.imgMainImage.Height / 4))
+            'e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.GetDrawPoint().X, obj.GetDrawPoint().Y, obj.imgMainImage.Width, obj.imgMainImage.Height / 2))
+        Next
         e.Graphics.DrawImage(imgCircle, New Rectangle(meObj.GetDrawPoint(0).X, meObj.GetDrawPoint(0).Y, meObj.imgMainImage.Width / 4, meObj.imgMainImage.Height / 4))
 
         'e.Graphics.DrawImage(imgCircle, New Rectangle(pntTest1.X, pntTest1.Y, meObj.imgMainImage.Width / 8, meObj.imgMainImage.Height / 8))
@@ -104,38 +103,105 @@ Public Class Form1
         'Debug.Print(meObj.GetMainPointMiddle().pnt.ToString & ", hey this is pos")
     End Sub
 
-    Private shtCharSpeed As Short = 15
+    Private shtCharSpeed As Short = 5
     Private Sub tmrGameUpdate_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles tmrGameUpdate.Tick
         stw.Stop()
-        Me.Text = "Last tick, ms : " & Math.Round(stw.ElapsedMilliseconds / 10).ToString
+        Me.Text = "Last tick, ms : " & Math.Round(stw.ElapsedMilliseconds / 5).ToString
         stw.Restart()
+        Try
+            If blnWDown = True Then 'Move to Mouse
+                Dim run As Double = pntMouse.X - meObj.GetMainPoint(0).pnt.X
+                Dim rise As Double = pntMouse.Y - meObj.GetMainPoint(0).pnt.Y
 
-        If blnWDown = True Then
-            meObj.SetMainPoint(New Point(meObj.GetDrawPoint(0).X, meObj.GetDrawPoint(0).Y - shtCharSpeed))
-        End If
-        If blnADown = True Then
-            meObj.SetMainPoint(New Point(meObj.GetDrawPoint(0).X - shtCharSpeed, meObj.GetDrawPoint(0).Y))
-        End If
-        If blnSDown = True Then
-            meObj.SetMainPoint(New Point(meObj.GetDrawPoint(0).X, meObj.GetDrawPoint(0).Y + shtCharSpeed))
-        End If
-        If blnDDown = True Then
-            meObj.SetMainPoint(New Point(meObj.GetDrawPoint(0).X + shtCharSpeed, meObj.GetDrawPoint(0).Y))
-        End If
+                Dim scale As Double = shtCharSpeed / FindDistance(pntMouse, meObj.GetMainPoint(0).pnt)
 
-        For Each plyr As Player In otherComObj
-            If plyr.blnWDown = True Then
-                plyr.SetMainPoint(New Point(plyr.GetDrawPoint(0).X, plyr.GetDrawPoint(0).Y - shtCharSpeed))
+                rise *= scale
+                run *= scale
+                meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X + run, meObj.GetMainPoint(0).pnt.Y + rise))
+
+            ElseIf blnSDown = True Then 'Move Away from Mouse
+                Dim run As Double = pntMouse.X - meObj.GetMainPoint(0).pnt.X
+                Dim rise As Double = pntMouse.Y - meObj.GetMainPoint(0).pnt.Y
+
+                Dim scale As Double = shtCharSpeed / FindDistance(pntMouse, meObj.GetMainPoint(0).pnt)
+
+                rise *= scale
+                run *= scale
+                meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X - run, meObj.GetMainPoint(0).pnt.Y - rise))
+
             End If
-            If plyr.blnADown = True Then
-                plyr.SetMainPoint(New Point(plyr.GetDrawPoint(0).X - shtCharSpeed, plyr.GetDrawPoint(0).Y))
+            If blnADown = True Then
+                Dim run As Double = pntMouse.X - meObj.GetMainPoint(0).pnt.X
+                Dim rise As Double = pntMouse.Y - meObj.GetMainPoint(0).pnt.Y
+
+                Dim scale As Double = shtCharSpeed / FindDistance(pntMouse, meObj.GetMainPoint(0).pnt)
+
+                rise *= scale
+                run *= scale
+                meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X + rise, meObj.GetMainPoint(0).pnt.Y - run))
+
+            ElseIf blnDDown = True Then
+                Dim run As Double = pntMouse.X - meObj.GetMainPoint(0).pnt.X
+                Dim rise As Double = pntMouse.Y - meObj.GetMainPoint(0).pnt.Y
+
+                Dim scale As Double = shtCharSpeed / FindDistance(pntMouse, meObj.GetMainPoint(0).pnt)
+
+                rise *= scale
+                run *= scale
+                meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X - rise, meObj.GetMainPoint(0).pnt.Y + run))
+
             End If
-            If plyr.blnSDown = True Then
-                plyr.SetMainPoint(New Point(plyr.GetDrawPoint(0).X, plyr.GetDrawPoint(0).Y + shtCharSpeed))
-            End If
-            If plyr.blnDDown = True Then
-                plyr.SetMainPoint(New Point(plyr.GetDrawPoint(0).X + shtCharSpeed, plyr.GetDrawPoint(0).Y))
-            End If
+        Catch ex As Exception
+            'nothing    
+        End Try
+        
+        For Each plyr As Player In otherComObj  'moves the Other computers' objects
+            Try
+                If plyr.blnWDown = True Then 'Move to Mouse
+                    Dim run As Double = plyr.pntMyMousePos.X - meObj.GetMainPoint(0).pnt.X
+                    Dim rise As Double = plyr.pntMyMousePos.Y - meObj.GetMainPoint(0).pnt.Y
+
+                    Dim scale As Double = shtCharSpeed / FindDistance(pntMouse, meObj.GetMainPoint(0).pnt)
+
+                    rise *= scale
+                    run *= scale
+                    meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X + run, meObj.GetMainPoint(0).pnt.Y + rise))
+
+                ElseIf plyr.blnSDown = True Then 'Move Away from Mouse
+                    Dim run As Double = plyr.pntMyMousePos.X - meObj.GetMainPoint(0).pnt.X
+                    Dim rise As Double = plyr.pntMyMousePos.Y - meObj.GetMainPoint(0).pnt.Y
+
+                    Dim scale As Double = shtCharSpeed / FindDistance(pntMouse, meObj.GetMainPoint(0).pnt)
+
+                    rise *= scale
+                    run *= scale
+                    meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X - run, meObj.GetMainPoint(0).pnt.Y - rise))
+
+                End If
+                If plyr.blnADown = True Then
+                    Dim run As Double = plyr.pntMyMousePos.X - meObj.GetMainPoint(0).pnt.X
+                    Dim rise As Double = plyr.pntMyMousePos.Y - meObj.GetMainPoint(0).pnt.Y
+
+                    Dim scale As Double = shtCharSpeed / FindDistance(pntMouse, meObj.GetMainPoint(0).pnt)
+
+                    rise *= scale
+                    run *= scale
+                    meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X + rise, meObj.GetMainPoint(0).pnt.Y - run))
+
+                ElseIf plyr.blnDDown = True Then
+                    Dim run As Double = plyr.pntMyMousePos.X - meObj.GetMainPoint(0).pnt.X
+                    Dim rise As Double = plyr.pntMyMousePos.Y - meObj.GetMainPoint(0).pnt.Y
+
+                    Dim scale As Double = shtCharSpeed / FindDistance(pntMouse, meObj.GetMainPoint(0).pnt)
+
+                    rise *= scale
+                    run *= scale
+                    plyr.SetMainPoint(New Point(plyr.GetMainPoint(0).pnt.X - rise, plyr.GetMainPoint(0).pnt.Y + run))
+
+                End If
+            Catch ex As Exception
+                'nothing    
+            End Try
         Next
 
         'Check other computer for collision with walls
@@ -238,19 +304,19 @@ Public Class Form1
         If e.KeyCode = Keys.W And blnWDown = False Then
             'give button down
             blnWDown = True
-            GiveKeyDownToFriends(My.Computer.Name, "W")
+            GiveKeyDownToFriends(My.Computer.Name, "W", pntMouse)
         End If
         If e.KeyCode = Keys.A And blnADown = False Then
             blnADown = True
-            GiveKeyDownToFriends(My.Computer.Name, "A")
+            GiveKeyDownToFriends(My.Computer.Name, "A", pntMouse)
         End If
         If e.KeyCode = Keys.S And blnSDown = False Then
             blnSDown = True
-            GiveKeyDownToFriends(My.Computer.Name, "S")
+            GiveKeyDownToFriends(My.Computer.Name, "S", pntMouse)
         End If
         If e.KeyCode = Keys.D And blnDDown = False Then
             blnDDown = True
-            GiveKeyDownToFriends(My.Computer.Name, "D")
+            GiveKeyDownToFriends(My.Computer.Name, "D", pntMouse)
         End If
 
         'Debug keys
@@ -282,7 +348,13 @@ Public Class Form1
         End If
     End Sub
 
-    Private Sub GiveKeyDownToFriends(ByVal strMyName As String, ByVal key As Char)
+    Public pntMouse As Point
+    Private Sub Form1_MouseMove(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles pbxPlayArea.MouseMove
+        pntMouse = New Point(e.X, e.Y)
+        Debug.Print("HE, : " & pntMouse.ToString)
+    End Sub
+
+    Private Sub GiveKeyDownToFriends(ByVal strMyName As String, ByVal key As Char, ByVal mousePnt As Point)
         'send my computers the name
         For index As Short = 0 To lstComputers.Count - 1
             If lstComputers(index).ToString = My.Computer.Name Then
@@ -291,9 +363,12 @@ Public Class Form1
 
             client = New TcpClient(lstComputers(index).ToString, 5019)
 
-            Dim Writer As New StreamWriter(client.GetStream())
+            Dim Writer As New StreamWriter(client.GetStream())  'Give MousePos Too
             Writer.Write(chrStartProcessingText & strMyName & chrSendFrom &
-                         chrStartProcessingText & key & chrKeyPress)
+                         chrStartProcessingText & mousePnt.X & chrMakeNum &
+                         chrStartProcessingText & mousePnt.Y & chrMakeNum &
+                         chrStartProcessingText & key & chrKeyUnPress)
+            Writer.Flush()
             Writer.Flush()
         Next
     End Sub
@@ -481,6 +556,7 @@ Public Class Form1
 
             ElseIf currentProcess = Process.PressedKey Then  'Gets a pressed key from another computer.
                 otherComObj(lstComputers.IndexOf(strPersonFrom)).SetKeyPressed(shtInfo)
+                otherComObj(lstComputers.IndexOf(strPersonFrom)).pntMyMousePos = New Point(lstSht(0), lstSht(1)) 'Gets the mouse pos
 
                 shtInfo = String.Empty
                 strPersonFrom = String.Empty
