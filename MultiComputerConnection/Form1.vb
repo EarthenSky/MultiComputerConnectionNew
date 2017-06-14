@@ -3,6 +3,7 @@ Imports System.Net
 Imports System.Threading
 Imports System.Runtime.InteropServices
 Imports System.IO
+Imports System.Drawing.Drawing2D
 
 Public Enum Process
     None
@@ -56,6 +57,8 @@ Public Class Form1
 
     Public stw As New Stopwatch()
 
+    Public rf As Single = 12
+
     Private Sub Form1_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
         imgEnemyOne = Image.FromFile(currentFileDirectory & "EnemyFOne.png")
         imgEnemyTwo = Image.FromFile(currentFileDirectory & "BugOne_MiniEnemy_SpriteSheet.png")
@@ -79,6 +82,7 @@ Public Class Form1
         stw.Start()
     End Sub
 
+
     Private Sub PaintMain(ByVal o As Object, ByVal e As PaintEventArgs) Handles pbxPlayArea.Paint
         For Each obj As AnimationObject In lstAnimationObjects 'Draws animations
             If obj.pntCurrentImgIndexes.X <> -1 Then
@@ -96,11 +100,20 @@ Public Class Form1
             e.Graphics.DrawImage(imgEnemyTwo, New Rectangle(obj.GetDrawPoint(0).X, obj.GetDrawPoint(0).Y, meObj.imgMainImage.Width / 4, meObj.imgMainImage.Height / 4))
             'e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.GetDrawPoint().X, obj.GetDrawPoint().Y, obj.imgMainImage.Width, obj.imgMainImage.Height / 2))
         Next
-        e.Graphics.DrawImage(imgCircle, New Rectangle(meObj.GetDrawPoint(0).X, meObj.GetDrawPoint(0).Y, meObj.imgMainImage.Width / 4, meObj.imgMainImage.Height / 4))
 
-        'e.Graphics.DrawImage(imgCircle, New Rectangle(pntTest1.X, pntTest1.Y, meObj.imgMainImage.Width / 8, meObj.imgMainImage.Height / 8))
-        'e.Graphics.DrawImage(imgCircle, New Rectangle(pntTest2.X, pntTest2.Y, meObj.imgMainImage.Width / 8, meObj.imgMainImage.Height / 8))
-        'Debug.Print(meObj.GetMainPointMiddle().pnt.ToString & ", hey this is pos")
+        'Dim bmp As New Bitmap(currentFileDirectory & "Circle.png")
+        Dim bmp As New Bitmap(imgCircle)
+
+        Dim scale As Single = 1
+
+        Dim matrix As New Drawing2D.Matrix(1, 0, 0, 1, 1, 0)
+
+        'matrix.Rotate(rf, Drawing2D.MatrixOrder.Append)
+        matrix.RotateAt(rf, New PointF(meObj.GetMainPoint(0).pnt.X + 32, meObj.GetMainPoint(0).pnt.Y + 32), Drawing2D.MatrixOrder.Append)
+
+        e.Graphics.Transform = matrix
+
+        e.Graphics.DrawImage(imgCircle, New Rectangle(meObj.GetDrawPoint(0).X, meObj.GetDrawPoint(0).Y, meObj.imgMainImage.Width / 4, meObj.imgMainImage.Height / 4))
     End Sub
 
     Private shtCharSpeed As Short = 5
@@ -108,100 +121,41 @@ Public Class Form1
         stw.Stop()
         Me.Text = "Last tick, ms : " & Math.Round(stw.ElapsedMilliseconds / 5).ToString
         stw.Restart()
-        Try
-            If blnWDown = True Then 'Move to Mouse
-                Dim run As Double = pntMouse.X - meObj.GetMainPoint(0).pnt.X
-                Dim rise As Double = pntMouse.Y - meObj.GetMainPoint(0).pnt.Y
 
-                Dim scale As Double = shtCharSpeed / FindDistance(pntMouse, meObj.GetMainPoint(0).pnt)
+        If blnWDown = True Then
+            meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X, meObj.GetMainPoint(0).pnt.Y - shtCharSpeed))
 
-                rise *= scale
-                run *= scale
-                meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X + run, meObj.GetMainPoint(0).pnt.Y + rise))
+        End If
+        If blnSDown = True Then
+            meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X, meObj.GetMainPoint(0).pnt.Y + shtCharSpeed))
 
-            ElseIf blnSDown = True Then 'Move Away from Mouse
-                Dim run As Double = pntMouse.X - meObj.GetMainPoint(0).pnt.X
-                Dim rise As Double = pntMouse.Y - meObj.GetMainPoint(0).pnt.Y
+        End If
+        If blnADown = True Then
+            meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X - shtCharSpeed, meObj.GetMainPoint(0).pnt.Y))
 
-                Dim scale As Double = shtCharSpeed / FindDistance(pntMouse, meObj.GetMainPoint(0).pnt)
+        End If
+        If blnDDown = True Then
+            meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X + shtCharSpeed, meObj.GetMainPoint(0).pnt.Y))
 
-                rise *= scale
-                run *= scale
-                meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X - run, meObj.GetMainPoint(0).pnt.Y - rise))
+        End If
 
-            End If
-            If blnADown = True Then
-                Dim run As Double = pntMouse.X - meObj.GetMainPoint(0).pnt.X
-                Dim rise As Double = pntMouse.Y - meObj.GetMainPoint(0).pnt.Y
-
-                Dim scale As Double = shtCharSpeed / FindDistance(pntMouse, meObj.GetMainPoint(0).pnt)
-
-                rise *= scale
-                run *= scale
-                meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X + rise, meObj.GetMainPoint(0).pnt.Y - run))
-
-            ElseIf blnDDown = True Then
-                Dim run As Double = pntMouse.X - meObj.GetMainPoint(0).pnt.X
-                Dim rise As Double = pntMouse.Y - meObj.GetMainPoint(0).pnt.Y
-
-                Dim scale As Double = shtCharSpeed / FindDistance(pntMouse, meObj.GetMainPoint(0).pnt)
-
-                rise *= scale
-                run *= scale
-                meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X - rise, meObj.GetMainPoint(0).pnt.Y + run))
-
-            End If
-        Catch ex As Exception
-            'nothing    
-        End Try
-        
         For Each plyr As Player In otherComObj  'moves the Other computers' objects
-            Try
-                If plyr.blnWDown = True Then 'Move to Mouse
-                    Dim run As Double = plyr.pntMyMousePos.X - meObj.GetMainPoint(0).pnt.X
-                    Dim rise As Double = plyr.pntMyMousePos.Y - meObj.GetMainPoint(0).pnt.Y
+            If plyr.blnWDown = True Then 'Move to Mouse
+                plyr.SetMainPoint(New Point(plyr.GetMainPoint(0).pnt.X, plyr.GetMainPoint(0).pnt.Y - shtCharSpeed))
 
-                    Dim scale As Double = shtCharSpeed / FindDistance(pntMouse, meObj.GetMainPoint(0).pnt)
+            End If
+            If plyr.blnSDown = True Then 'Move Away from Mouse
+                plyr.SetMainPoint(New Point(plyr.GetMainPoint(0).pnt.X, plyr.GetMainPoint(0).pnt.Y + shtCharSpeed))
 
-                    rise *= scale
-                    run *= scale
-                    meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X + run, meObj.GetMainPoint(0).pnt.Y + rise))
+            End If
+            If plyr.blnADown = True Then
+                plyr.SetMainPoint(New Point(plyr.GetMainPoint(0).pnt.X - shtCharSpeed, plyr.GetMainPoint(0).pnt.Y))
 
-                ElseIf plyr.blnSDown = True Then 'Move Away from Mouse
-                    Dim run As Double = plyr.pntMyMousePos.X - meObj.GetMainPoint(0).pnt.X
-                    Dim rise As Double = plyr.pntMyMousePos.Y - meObj.GetMainPoint(0).pnt.Y
+            End If
+            If plyr.blnDDown = True Then
+                plyr.SetMainPoint(New Point(plyr.GetMainPoint(0).pnt.X + shtCharSpeed, plyr.GetMainPoint(0).pnt.Y))
 
-                    Dim scale As Double = shtCharSpeed / FindDistance(pntMouse, meObj.GetMainPoint(0).pnt)
-
-                    rise *= scale
-                    run *= scale
-                    meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X - run, meObj.GetMainPoint(0).pnt.Y - rise))
-
-                End If
-                If plyr.blnADown = True Then
-                    Dim run As Double = plyr.pntMyMousePos.X - meObj.GetMainPoint(0).pnt.X
-                    Dim rise As Double = plyr.pntMyMousePos.Y - meObj.GetMainPoint(0).pnt.Y
-
-                    Dim scale As Double = shtCharSpeed / FindDistance(pntMouse, meObj.GetMainPoint(0).pnt)
-
-                    rise *= scale
-                    run *= scale
-                    meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X + rise, meObj.GetMainPoint(0).pnt.Y - run))
-
-                ElseIf plyr.blnDDown = True Then
-                    Dim run As Double = plyr.pntMyMousePos.X - meObj.GetMainPoint(0).pnt.X
-                    Dim rise As Double = plyr.pntMyMousePos.Y - meObj.GetMainPoint(0).pnt.Y
-
-                    Dim scale As Double = shtCharSpeed / FindDistance(pntMouse, meObj.GetMainPoint(0).pnt)
-
-                    rise *= scale
-                    run *= scale
-                    plyr.SetMainPoint(New Point(plyr.GetMainPoint(0).pnt.X - rise, plyr.GetMainPoint(0).pnt.Y + run))
-
-                End If
-            Catch ex As Exception
-                'nothing    
-            End Try
+            End If
         Next
 
         'Check other computer for collision with walls
@@ -326,6 +280,10 @@ Public Class Form1
             lstAnimationObjects(0).PlayAnimation(0)
         ElseIf e.KeyCode = Keys.T Then
             lstAnimationObjects(0).StopAnimation()
+        ElseIf e.KeyCode = Keys.O Then
+            rf += 6
+        ElseIf e.KeyCode = Keys.P Then
+            rf -= 6
         End If
     End Sub
 
