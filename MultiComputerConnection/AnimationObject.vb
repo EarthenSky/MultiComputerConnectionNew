@@ -26,6 +26,10 @@
         Next
     End Sub
 
+    Public Sub SetAnimationInterval(ByVal shtInterval As Short)
+        tmrAnimation.Interval = shtInterval
+    End Sub
+
     Public Sub PlayAnimation(ByVal shtIndex As Short)
         pntCurrentImgIndexes = New Point(shtIndex, 0)
         'tmrAnimation.Enabled = True

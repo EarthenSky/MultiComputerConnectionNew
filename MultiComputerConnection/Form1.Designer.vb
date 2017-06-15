@@ -40,9 +40,9 @@ Partial Class Form1
         'lbxChatConsole
         '
         Me.lbxChatConsole.FormattingEnabled = True
-        Me.lbxChatConsole.Location = New System.Drawing.Point(938, 14)
+        Me.lbxChatConsole.Location = New System.Drawing.Point(1171, 557)
         Me.lbxChatConsole.Name = "lbxChatConsole"
-        Me.lbxChatConsole.Size = New System.Drawing.Size(227, 537)
+        Me.lbxChatConsole.Size = New System.Drawing.Size(176, 238)
         Me.lbxChatConsole.TabIndex = 0
         '
         'btnUpdateChatConsole
@@ -120,7 +120,7 @@ Partial Class Form1
         Me.pbxPlayArea.BackColor = System.Drawing.Color.PeachPuff
         Me.pbxPlayArea.Location = New System.Drawing.Point(13, 13)
         Me.pbxPlayArea.Name = "pbxPlayArea"
-        Me.pbxPlayArea.Size = New System.Drawing.Size(919, 538)
+        Me.pbxPlayArea.Size = New System.Drawing.Size(1149, 782)
         Me.pbxPlayArea.TabIndex = 8
         Me.pbxPlayArea.TabStop = False
         '
@@ -134,7 +134,7 @@ Partial Class Form1
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.Color.Linen
-        Me.ClientSize = New System.Drawing.Size(1359, 563)
+        Me.ClientSize = New System.Drawing.Size(1359, 810)
         Me.Controls.Add(Me.pbxPlayArea)
         Me.Controls.Add(Me.btnConnect)
         Me.Controls.Add(Me.lblInfo2)

@@ -81,7 +81,7 @@ Public Class CollisionMap 'Instantiate to make a collider map of lines, call the
             For jIndex As Short = 0 To colMap.Height - 1
                 If bmpCollision.GetPixel(index, jIndex).R > 0 Then
                     AddRedPixelToList(New PixelPoint(New Point(index, jIndex), bmpCollision.GetPixel(index, jIndex).R))
-                    Debug.Print(bmpCollision.GetPixel(index, jIndex).R.ToString & ", is red")
+                    'Debug.Print(bmpCollision.GetPixel(index, jIndex).R.ToString & ", is red")
                 End If
             Next
         Next
@@ -134,18 +134,6 @@ Public Class CollisionMap 'Instantiate to make a collider map of lines, call the
                                                                       lstLstSections(index).lstPnt(0).pnt.Y * shtColliderMapScale)))
         Next
     End Sub
-
-    ' Public Sub ScaleLine(ByRef line As Line) ' Nope
-    '   Dim pnt1 As Point = line.pnt1
-    'Dim pnt2 As Point = line.pnt2
-    '
-    '   Dim scaled1 As Point = pnt1 - pnt2
-    'Dim scaled2 As Point = pnt1 - pnt2
-    '
-    '    scaled1 = New Point(scaled1.X * shtExtraLineLength, scaled1.Y * shtExtraLineLength)
-    '
-    '    line = New Line(pnt1, pnt2)
-    'End Sub
 
     Private Sub SortByVal(ByRef lst As List(Of PixelPoint))  '++Better than my other sort
         'makes temp equal to the list box
@@ -294,7 +282,7 @@ Public Class CollisionMap 'Instantiate to make a collider map of lines, call the
         Return New Point(pnt1.X - xDiff, pnt1.Y - yDiff)
     End Function
 
-    'Start Converted Internet
+    'Start Converted Internet Code
     Function sqr(ByVal x) As Integer
         Return x * x
     End Function
@@ -344,7 +332,7 @@ Public Class CollisionMap 'Instantiate to make a collider map of lines, call the
     Function FindDistance(ByVal pnt1 As Point, ByVal pnt2 As Point) As Single
         Return Math.Sqrt(sqr(pnt2.X - pnt1.X) + sqr(pnt2.Y - pnt1.Y))
     End Function
-    'End Converted Internet
+    'End Converted Internet Code
 
     Dim shtDrawMapScale As Short = 8
     Public Sub Draw(ByVal e As PaintEventArgs)  'Call this to draw the map to the screen

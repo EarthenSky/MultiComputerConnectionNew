@@ -34,21 +34,21 @@ Public Class Form1
     Public Const chrMakeNum As Char = Chr(6) 'makes a num value
 
     Private currentFileDirectory As String = Directory.GetCurrentDirectory.Remove(Directory.GetCurrentDirectory.IndexOf("\bin\Debug"), 10) + "\"
-    Private imgEnemyOne As Image
-    Private imgEnemyTwo As Image
+    Private imgGoodSpriteSheet As Image
+    Private imgEnemySpriteSheet As Image
     Public imgCircle As Image
 
     Private listener As New TcpListener(5019)
     Private client As New TcpClient
 
     Public lstComputers As New List(Of String)
-    Public meObj As OverDropObject
+    Public meObj As AnimationObject
     Public otherComObj As New List(Of Player)
 
     Public lstAnimationObjects As New List(Of AnimationObject)
 
-    Public pntTest1 As New Point(300, 200)
-    Public pntTest2 As New Point(400, 300)
+    'Public pntTest1 As New Point(300, 200)
+    'Public pntTest2 As New Point(400, 300)
 
     Public collisionMap1 As Image
     Public drawMap1 As Image
@@ -57,11 +57,9 @@ Public Class Form1
 
     Public stw As New Stopwatch()
 
-    Public rf As Single = 12
-
     Private Sub Form1_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
-        imgEnemyOne = Image.FromFile(currentFileDirectory & "EnemyFOne.png")
-        imgEnemyTwo = Image.FromFile(currentFileDirectory & "BugOne_MiniEnemy_SpriteSheet.png")
+        imgGoodSpriteSheet = Image.FromFile(currentFileDirectory & "MainChar2_SpriteSheet.png")
+        imgEnemySpriteSheet = Image.FromFile(currentFileDirectory & "BugOne_MiniEnemy_SpriteSheet.png")
 
         imgCircle = Image.FromFile(currentFileDirectory & "Circle.png")
 
@@ -70,8 +68,8 @@ Public Class Form1
 
         mapObj = New CollisionMap(drawMap1, collisionMap1)
 
-        meObj = New OverDropObject(New Point(200, 200), imgEnemyOne, 32)
-        lstAnimationObjects.Add(New AnimationObject(New Point(0, 0), imgEnemyTwo, 32, 100))
+        meObj = New AnimationObject(New Point(200, 200), imgGoodSpriteSheet, 16, 100)
+        lstAnimationObjects.Add(New AnimationObject(New Point(0, 0), imgEnemySpriteSheet, 32, 100))
 
         Me.KeyPreview = True
 
@@ -82,6 +80,7 @@ Public Class Form1
         stw.Start()
     End Sub
 
+    Public rotationFactor As Single
     Private Sub PaintMain(ByVal o As Object, ByVal e As PaintEventArgs) Handles pbxPlayArea.Paint
         For Each obj As AnimationObject In lstAnimationObjects 'Draws animations
             If obj.pntCurrentImgIndexes.X <> -1 Then
@@ -96,7 +95,7 @@ Public Class Form1
         mapObj.Draw(e)  'Draw at the bottom.
 
         For Each obj As Player In otherComObj 'Draws otherComputer controlled objects
-            e.Graphics.DrawImage(imgEnemyTwo, New Rectangle(obj.GetDrawPoint(0).X, obj.GetDrawPoint(0).Y, meObj.imgMainImage.Width / 4, meObj.imgMainImage.Height / 4))
+            e.Graphics.DrawImage(imgEnemySpriteSheet, New Rectangle(obj.GetDrawPoint(0).X, obj.GetDrawPoint(0).Y, meObj.imgMainImage.Width / 4, meObj.imgMainImage.Height / 4))
             'e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.GetDrawPoint().X, obj.GetDrawPoint().Y, obj.imgMainImage.Width, obj.imgMainImage.Height / 2))
         Next
 
@@ -108,52 +107,74 @@ Public Class Form1
         Dim matrix As New Drawing2D.Matrix(1, 0, 0, 1, 1, 0)
 
         'matrix.Rotate(rf, Drawing2D.MatrixOrder.Append)
-        matrix.RotateAt(rf, New PointF(meObj.GetMainPoint(0).pnt.X + 32, meObj.GetMainPoint(0).pnt.Y + 32), Drawing2D.MatrixOrder.Append)
+        matrix.RotateAt(rotationFactor, New PointF(meObj.GetMainPoint(0).pnt.X + 32, meObj.GetMainPoint(0).pnt.Y + 32), Drawing2D.MatrixOrder.Append)
 
         e.Graphics.Transform = matrix
 
-        e.Graphics.DrawImage(imgCircle, New Rectangle(meObj.GetDrawPoint(0).X, meObj.GetDrawPoint(0).Y, meObj.imgMainImage.Width / 4, meObj.imgMainImage.Height / 4))
+        If meObj.pntCurrentImgIndexes.X <> -1 Then
+            e.Graphics.DrawImage(meObj.imgMainImage, New Rectangle(meObj.GetMainPoint(0).pnt.X, meObj.GetMainPoint(0).pnt.Y, 64, 64),
+                                 meObj.lstAnimations(meObj.pntCurrentImgIndexes.X)(meObj.pntCurrentImgIndexes.Y), System.Drawing.GraphicsUnit.Pixel)
+        Else
+            e.Graphics.DrawImage(meObj.imgMainImage, New Rectangle(meObj.GetMainPoint(0).pnt.X, meObj.GetMainPoint(0).pnt.Y, 64, 64),
+                                 meObj.lstAnimations(0)(0), GraphicsUnit.Pixel)
+        End If
     End Sub
 
     Private shtCharSpeed As Short = 5
+    Private shtMeCharSpeed As Short = 5
     Private Sub tmrGameUpdate_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles tmrGameUpdate.Tick
         stw.Stop()
         Me.Text = "Last tick, ms : " & Math.Round(stw.ElapsedMilliseconds / 5).ToString
         stw.Restart()
 
+        LookAtMouse()
+
+        If meObj.pntCurrentImgIndexes.X = 1 Then
+            If meObj.pntCurrentImgIndexes.Y = 3 Then
+                meObj.SetAnimationInterval(100)
+                meObj.PlayAnimation(0)
+            End If
+        End If
+
         If blnWDown = True Then
-            meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X, meObj.GetMainPoint(0).pnt.Y - shtCharSpeed))
+            Dim run As Double = pntMouse.X - meObj.GetMainPoint(0).pnt.X - 32
+            Dim rise As Double = pntMouse.Y - meObj.GetMainPoint(0).pnt.Y - 32
 
-        End If
-        If blnSDown = True Then
-            meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X, meObj.GetMainPoint(0).pnt.Y + shtCharSpeed))
+            Dim scale As Double = shtMeCharSpeed / FindDistance(pntMouse, meObj.GetMainPoint(0).pnt)
 
-        End If
-        If blnADown = True Then
-            meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X - shtCharSpeed, meObj.GetMainPoint(0).pnt.Y))
+            rise *= scale
+            run *= scale
+            meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X + run, meObj.GetMainPoint(0).pnt.Y + rise))
+        ElseIf blnSDown = True Then
+            Dim run As Double = pntMouse.X - meObj.GetMainPoint(0).pnt.X - 32
+            Dim rise As Double = pntMouse.Y - meObj.GetMainPoint(0).pnt.Y - 32
 
-        End If
-        If blnDDown = True Then
-            meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X + shtCharSpeed, meObj.GetMainPoint(0).pnt.Y))
+            Dim scale As Double = shtMeCharSpeed / FindDistance(pntMouse, meObj.GetMainPoint(0).pnt)
 
+            rise *= scale
+            run *= scale
+            meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X - run, meObj.GetMainPoint(0).pnt.Y - rise))
         End If
 
         For Each plyr As Player In otherComObj  'moves the Other computers' objects
-            If plyr.blnWDown = True Then 'Move to Mouse
-                plyr.SetMainPoint(New Point(plyr.GetMainPoint(0).pnt.X, plyr.GetMainPoint(0).pnt.Y - shtCharSpeed))
+            If plyr.blnWDown = True Then
+                Dim run As Double = plyr.pntMyMousePos.X - meObj.GetMainPoint(0).pnt.X - 32
+                Dim rise As Double = plyr.pntMyMousePos.Y - meObj.GetMainPoint(0).pnt.Y - 32
 
-            End If
-            If plyr.blnSDown = True Then 'Move Away from Mouse
-                plyr.SetMainPoint(New Point(plyr.GetMainPoint(0).pnt.X, plyr.GetMainPoint(0).pnt.Y + shtCharSpeed))
+                Dim scale As Double = shtCharSpeed / FindDistance(plyr.pntMyMousePos, meObj.GetMainPoint(0).pnt)
 
-            End If
-            If plyr.blnADown = True Then
-                plyr.SetMainPoint(New Point(plyr.GetMainPoint(0).pnt.X - shtCharSpeed, plyr.GetMainPoint(0).pnt.Y))
+                rise *= scale
+                run *= scale
+                meObj.SetMainPoint(New Point(plyr.GetMainPoint(0).pnt.X + run, plyr.GetMainPoint(0).pnt.Y + rise))
+            ElseIf plyr.blnSDown = True Then
+                Dim run As Double = pntMouse.X - meObj.GetMainPoint(0).pnt.X - 32
+                Dim rise As Double = pntMouse.Y - meObj.GetMainPoint(0).pnt.Y - 32
 
-            End If
-            If plyr.blnDDown = True Then
-                plyr.SetMainPoint(New Point(plyr.GetMainPoint(0).pnt.X + shtCharSpeed, plyr.GetMainPoint(0).pnt.Y))
+                Dim scale As Double = shtCharSpeed / FindDistance(pntMouse, meObj.GetMainPoint(0).pnt)
 
+                rise *= scale
+                run *= scale
+                meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X - run, meObj.GetMainPoint(0).pnt.Y - rise))
             End If
         Next
 
@@ -248,11 +269,18 @@ Public Class Form1
         Refresh()
     End Sub
 
+    Private Sub LookAtMouse()
+        Dim angle = FindAngle(pntMouse, New Point(meObj.GetMainPoint(0).pnt.X + 32, meObj.GetMainPoint(0).pnt.Y + 32),
+                              New Point(0, Short.MinValue), New Point(0, Short.MaxValue)) * 57.2958
+        rotationFactor = angle
+    End Sub
+
     Public blnWDown As Boolean = False
     Public blnADown As Boolean = False
     Public blnSDown As Boolean = False
     Public blnDDown As Boolean = False
-    Private Sub MoveButtonPress(ByVal o As System.Object, ByVal e As KeyEventArgs) Handles Me.KeyDown
+    Public blnDashOn As Boolean = False
+    Private Sub ButtonPress(ByVal o As System.Object, ByVal e As KeyEventArgs) Handles Me.KeyDown
         'Movement Keys
         If e.KeyCode = Keys.W And blnWDown = False Then
             'give button down
@@ -272,17 +300,22 @@ Public Class Form1
             GiveKeyDownToFriends(My.Computer.Name, "D", pntMouse)
         End If
 
+        If e.KeyCode = Keys.Space Then
+            blnDashOn = True
+            shtMeCharSpeed = 15
+        End If
+
         'Debug keys
         If e.KeyCode = Keys.E Then
-            lstAnimationObjects(0).PlayAnimation(1)
-        ElseIf e.KeyCode = Keys.Up Then
             lstAnimationObjects(0).PlayAnimation(0)
+        ElseIf e.KeyCode = Keys.Up Then
+            lstAnimationObjects(0).PlayAnimation(1)
         ElseIf e.KeyCode = Keys.T Then
             lstAnimationObjects(0).StopAnimation()
         ElseIf e.KeyCode = Keys.O Then
-            rf += 6
+            rotationFactor += 6
         ElseIf e.KeyCode = Keys.P Then
-            rf -= 6
+            rotationFactor -= 6
         End If
     End Sub
 
@@ -308,6 +341,13 @@ Public Class Form1
     Public pntMouse As Point
     Private Sub Form1_MouseMove(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles pbxPlayArea.MouseMove
         pntMouse = New Point(e.X, e.Y)
+    End Sub
+
+    Private Sub MouseClickDown(ByVal sender As Object, ByVal e As MouseEventArgs) Handles pbxPlayArea.MouseDown
+        If e.Button = Windows.Forms.MouseButtons.Left Then
+            meObj.SetAnimationInterval(25)
+            meObj.PlayAnimation(1)
+        End If
     End Sub
 
     Private Sub GiveKeyDownToFriends(ByVal strMyName As String, ByVal key As Char, ByVal mousePnt As Point)
@@ -383,7 +423,6 @@ Public Class Form1
         Dim p As New Point
         'check whether the two line parallel
         If dy1 * dx2 = dy2 * dx1 Then
-            MessageBox.Show("no point")
             'Return P with a specific data
         Else
             Dim x As Double = ((C.Y - A.Y) * dx1 * dx2 + dy1 * dx2 * A.X - dy2 * dx1 * C.X) / (dy1 * dx2 - dy2 * dx1)
@@ -626,7 +665,7 @@ Public Class Form1
     End Sub
 
     Private Sub AddComputerToList(ByVal strName As String)
-        otherComObj.Add(New Player(New Point(0, 0), imgEnemyOne, 32))  'Adds a new character to the screen
+        otherComObj.Add(New Player(New Point(0, 0), imgGoodSpriteSheet, 32))  'Adds a new character to the screen
         lstComputers.Add(strName)
         lbxComputersConnectedTo.Items.Add(strName)
     End Sub
