@@ -22,7 +22,7 @@ Public Class Form1
     'Gabe Stang
     '
     'Connect 3 computers together
-    'Can connect multiple computers (3) together and can ping name to console.
+    'Can connect multiple computers (3) together and runs a lan Game
 
     Public Const chrStartProcessingText As Char = Chr(0)
     Public Const chrAddComToConnectListEnd As Char = Chr(1)
@@ -33,7 +33,7 @@ Public Class Form1
     Public Const chrSendFrom As Char = Chr(5) 'person from
     Public Const chrMakeNum As Char = Chr(6) 'makes a num value
 
-    Private currentFileDirectory As String = Directory.GetCurrentDirectory.Remove(Directory.GetCurrentDirectory.IndexOf("\bin\Debug"), 10) + "\"
+    Private strCurrentFileDirectory As String = Directory.GetCurrentDirectory.Remove(Directory.GetCurrentDirectory.IndexOf("\bin\Debug"), 10) + "\"
     Private imgGoodSpriteSheet As Image
     Private imgEnemySpriteSheet As Image
     Public imgCircle As Image
@@ -43,31 +43,28 @@ Public Class Form1
 
     Public lstComputers As New List(Of String)
     Public meObj As AnimationObject
-    Public otherComObj As New List(Of Player)
+    Public lstOtherComputerObjects As New List(Of Player)
 
     Public lstAnimationObjects As New List(Of AnimationObject)
 
     'Public pntTest1 As New Point(300, 200)
     'Public pntTest2 As New Point(400, 300)
 
-    Public collisionMap1 As Image
-    Public drawMap1 As Image
+    Public imgCollisionMap As Image
+    Public imgDrawMap As Image
 
-    Public mapObj As CollisionMap
+    Public mapMain As CollisionMap
 
-    Public stw As New Stopwatch()
+    Public stwDebug As New Stopwatch()
 
     Private Sub Form1_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
-        imgGoodSpriteSheet = Image.FromFile(currentFileDirectory & "MainChar2_SpriteSheet.png")
-        imgEnemySpriteSheet = Image.FromFile(currentFileDirectory & "BugOne_MiniEnemy_SpriteSheet.png")
+        imgGoodSpriteSheet = Image.FromFile(strCurrentFileDirectory & "MainChar2_SpriteSheet.png")
+        imgEnemySpriteSheet = Image.FromFile(strCurrentFileDirectory & "BugOne_MiniEnemy_SpriteSheet.png")
+        imgDrawMap = Image.FromFile(strCurrentFileDirectory & "ActualMapDraw.png")
+        imgCollisionMap = Image.FromFile(strCurrentFileDirectory & "ActualMapMath.png")
+        imgCircle = Image.FromFile(strCurrentFileDirectory & "Circle.png")
 
-        imgCircle = Image.FromFile(currentFileDirectory & "Circle.png")
-
-        drawMap1 = Image.FromFile(currentFileDirectory & "ActualMapDraw.png")
-        collisionMap1 = Image.FromFile(currentFileDirectory & "ActualMapMath.png")
-
-        mapObj = New CollisionMap(drawMap1, collisionMap1)
-
+        mapMain = New CollisionMap(imgDrawMap, imgCollisionMap)
         meObj = New AnimationObject(New Point(200, 200), imgGoodSpriteSheet, 16, 100)
         lstAnimationObjects.Add(New AnimationObject(New Point(0, 0), imgEnemySpriteSheet, 32, 100))
 
@@ -77,10 +74,10 @@ Public Class Form1
         tbxConnectionComputerName.Text = My.Computer.Name
         ListenerThread.Start()
 
-        stw.Start()
+        stwDebug.Start()
     End Sub
 
-    Public rotationFactor As Single
+    Public sngRotationFactor As Single
     Private Sub PaintMain(ByVal o As Object, ByVal e As PaintEventArgs) Handles pbxPlayArea.Paint
         For Each obj As AnimationObject In lstAnimationObjects 'Draws animations
             If obj.pntCurrentImgIndexes.X <> -1 Then
@@ -92,24 +89,20 @@ Public Class Form1
             End If
         Next
 
-        mapObj.Draw(e)  'Draw at the bottom.
+        mapMain.Draw(e)  'Draw at the bottom.
 
-        For Each obj As Player In otherComObj 'Draws otherComputer controlled objects
+        For Each obj As Player In lstOtherComputerObjects 'Draws otherComputer controlled objects
             e.Graphics.DrawImage(imgEnemySpriteSheet, New Rectangle(obj.GetDrawPoint(0).X, obj.GetDrawPoint(0).Y, meObj.imgMainImage.Width / 4, meObj.imgMainImage.Height / 4))
             'e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.GetDrawPoint().X, obj.GetDrawPoint().Y, obj.imgMainImage.Width, obj.imgMainImage.Height / 2))
         Next
 
-        'Dim bmp As New Bitmap(currentFileDirectory & "Circle.png")
-        Dim bmp As New Bitmap(imgCircle)
+        Dim bmpTexture As New Bitmap(imgCircle)
 
-        Dim scale As Single = 1
+        Dim mtxRotate As New Drawing2D.Matrix(1, 0, 0, 1, 1, 0)
 
-        Dim matrix As New Drawing2D.Matrix(1, 0, 0, 1, 1, 0)
+        mtxRotate.RotateAt(sngRotationFactor, New PointF(meObj.GetMainPoint(0).pnt.X + 32, meObj.GetMainPoint(0).pnt.Y + 32), Drawing2D.MatrixOrder.Append)
 
-        'matrix.Rotate(rf, Drawing2D.MatrixOrder.Append)
-        matrix.RotateAt(rotationFactor, New PointF(meObj.GetMainPoint(0).pnt.X + 32, meObj.GetMainPoint(0).pnt.Y + 32), Drawing2D.MatrixOrder.Append)
-
-        e.Graphics.Transform = matrix
+        e.Graphics.Transform = mtxRotate
 
         If meObj.pntCurrentImgIndexes.X <> -1 Then
             e.Graphics.DrawImage(meObj.imgMainImage, New Rectangle(meObj.GetMainPoint(0).pnt.X, meObj.GetMainPoint(0).pnt.Y, 64, 64),
@@ -120,12 +113,12 @@ Public Class Form1
         End If
     End Sub
 
-    Private shtCharSpeed As Short = 5
-    Private shtMeCharSpeed As Short = 5
+    Private shtCharSpeed As Short = 4
+    Private shtMeCharSpeed As Short = 4
     Private Sub tmrGameUpdate_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles tmrGameUpdate.Tick
-        stw.Stop()
-        Me.Text = "Last tick, ms : " & Math.Round(stw.ElapsedMilliseconds / 5).ToString
-        stw.Restart()
+        stwDebug.Stop()
+        Me.Text = "Last tick, ms : " & Math.Round(stwDebug.ElapsedMilliseconds / 5).ToString
+        stwDebug.Restart()
 
         LookAtMouse()
 
@@ -156,7 +149,7 @@ Public Class Form1
             meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X - run, meObj.GetMainPoint(0).pnt.Y - rise))
         End If
 
-        For Each plyr As Player In otherComObj  'moves the Other computers' objects
+        For Each plyr As Player In lstOtherComputerObjects  'moves the Other computers' objects
             If plyr.blnWDown = True Then
                 Dim run As Double = plyr.pntMyMousePos.X - meObj.GetMainPoint(0).pnt.X - 32
                 Dim rise As Double = plyr.pntMyMousePos.Y - meObj.GetMainPoint(0).pnt.Y - 32
@@ -179,14 +172,14 @@ Public Class Form1
         Next
 
         'Check other computer for collision with walls
-        For index As Short = 0 To otherComObj.Count - 1
-            Dim pntTemp As Point = mapObj.CheckCollision(otherComObj(index).GetMainPoint(0), otherComObj(index).pntLastPos)
-            otherComObj(index).SetMainPoint(New Point(otherComObj(index).GetMainPoint(0).pnt.X + pntTemp.X, otherComObj(index).GetMainPoint(0).pnt.Y + pntTemp.Y))
+        For index As Short = 0 To lstOtherComputerObjects.Count - 1
+            Dim pntTemp As Point = mapMain.CheckCollision(lstOtherComputerObjects(index).GetMainPoint(0), lstOtherComputerObjects(index).pntLastPos)
+            lstOtherComputerObjects(index).SetMainPoint(New Point(lstOtherComputerObjects(index).GetMainPoint(0).pnt.X + pntTemp.X, lstOtherComputerObjects(index).GetMainPoint(0).pnt.Y + pntTemp.Y))
 
         Next
 
         'Check main character for collision with the walls
-        Dim pntTemp2 As Point = mapObj.CheckCollision(meObj.GetMainPoint(0), meObj.pntLastPos)
+        Dim pntTemp2 As Point = mapMain.CheckCollision(meObj.GetMainPoint(0), meObj.pntLastPos)
         meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X + pntTemp2.X, meObj.GetMainPoint(0).pnt.Y + pntTemp2.Y))
 
 #If False Then
@@ -241,25 +234,25 @@ Public Class Form1
         End If
 #End If
 
-        If otherComObj.Count > 0 AndAlso FindDistance(otherComObj(0).GetDrawPoint(0), meObj.GetDrawPoint(0)) < meObj.GetMainPoint(0).sngRadius + otherComObj(0).GetMainPoint(0).sngRadius Then
+        If lstOtherComputerObjects.Count > 0 AndAlso FindDistance(lstOtherComputerObjects(0).GetDrawPoint(0), meObj.GetDrawPoint(0)) < meObj.GetMainPoint(0).sngRadius + lstOtherComputerObjects(0).GetMainPoint(0).sngRadius Then
             Dim xMove, yMove As Single
 
             'Finds the rise and run of the two radius of the circles and scales it down to the overlap.
 
-            Dim run As Single = meObj.GetMainPoint(0).pnt.X - otherComObj(0).GetMainPoint(0).pnt.X
-            Dim rise As Single = meObj.GetMainPoint(0).pnt.Y - otherComObj(0).GetMainPoint(0).pnt.Y
+            Dim run As Single = meObj.GetMainPoint(0).pnt.X - lstOtherComputerObjects(0).GetMainPoint(0).pnt.X
+            Dim rise As Single = meObj.GetMainPoint(0).pnt.Y - lstOtherComputerObjects(0).GetMainPoint(0).pnt.Y
 
-            Dim smallDis As Single = meObj.GetMainPoint(0).sngRadius + otherComObj(0).GetMainPoint(0).sngRadius - FindDistance(otherComObj(0).GetDrawPoint(0), meObj.GetDrawPoint(0))
-            Dim scaleFactor As Single = smallDis / (meObj.GetMainPoint(0).sngRadius + otherComObj(0).GetMainPoint(0).sngRadius)
+            Dim smallDis As Single = meObj.GetMainPoint(0).sngRadius + lstOtherComputerObjects(0).GetMainPoint(0).sngRadius - FindDistance(lstOtherComputerObjects(0).GetDrawPoint(0), meObj.GetDrawPoint(0))
+            Dim scaleFactor As Single = smallDis / (meObj.GetMainPoint(0).sngRadius + lstOtherComputerObjects(0).GetMainPoint(0).sngRadius)
 
             xMove = run * scaleFactor / 2
             yMove = rise * scaleFactor / 2
 
             If (blnADown = True Or blnWDown = True) And (blnSDown = False Or blnDDown = False) Then
-                otherComObj(0).SetMainPoint(New Point(otherComObj(0).GetDrawPoint(0).X - xMove, otherComObj(0).GetDrawPoint(0).Y - yMove))
+                lstOtherComputerObjects(0).SetMainPoint(New Point(lstOtherComputerObjects(0).GetDrawPoint(0).X - xMove, lstOtherComputerObjects(0).GetDrawPoint(0).Y - yMove))
                 meObj.SetMainPoint(New Point(meObj.GetDrawPoint(0).X + xMove, meObj.GetDrawPoint(0).Y + yMove))
             Else
-                otherComObj(0).SetMainPoint(New Point(otherComObj(0).GetDrawPoint(0).X - xMove, otherComObj(0).GetDrawPoint(0).Y - yMove))
+                lstOtherComputerObjects(0).SetMainPoint(New Point(lstOtherComputerObjects(0).GetDrawPoint(0).X - xMove, lstOtherComputerObjects(0).GetDrawPoint(0).Y - yMove))
                 meObj.SetMainPoint(New Point(meObj.GetDrawPoint(0).X + xMove, meObj.GetDrawPoint(0).Y + yMove))
                 'otherComObj(0).SetMainPoint(New Point(otherComObj(0).GetDrawPoint().X + xMove, otherComObj(0).GetDrawPoint().Y + yMove))
                 'meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X - xMove, meObj.GetDrawPoint().Y - yMove))
@@ -272,7 +265,7 @@ Public Class Form1
     Private Sub LookAtMouse()
         Dim angle = FindAngle(pntMouse, New Point(meObj.GetMainPoint(0).pnt.X + 32, meObj.GetMainPoint(0).pnt.Y + 32),
                               New Point(0, Short.MinValue), New Point(0, Short.MaxValue)) * 57.2958
-        rotationFactor = angle
+        sngRotationFactor = angle
     End Sub
 
     Public blnWDown As Boolean = False
@@ -313,9 +306,9 @@ Public Class Form1
         ElseIf e.KeyCode = Keys.T Then
             lstAnimationObjects(0).StopAnimation()
         ElseIf e.KeyCode = Keys.O Then
-            rotationFactor += 6
+            sngRotationFactor += 6
         ElseIf e.KeyCode = Keys.P Then
-            rotationFactor -= 6
+            sngRotationFactor -= 6
         End If
     End Sub
 
@@ -550,15 +543,15 @@ Public Class Form1
                 shtInfo = String.Empty
 
             ElseIf currentProcess = Process.PressedKey Then  'Gets a pressed key from another computer.
-                otherComObj(lstComputers.IndexOf(strPersonFrom)).SetKeyPressed(shtInfo)
-                otherComObj(lstComputers.IndexOf(strPersonFrom)).pntMyMousePos = New Point(lstSht(0), lstSht(1)) 'Gets the mouse pos
+                lstOtherComputerObjects(lstComputers.IndexOf(strPersonFrom)).SetKeyPressed(shtInfo)
+                lstOtherComputerObjects(lstComputers.IndexOf(strPersonFrom)).pntMyMousePos = New Point(lstSht(0), lstSht(1)) 'Gets the mouse pos
 
                 shtInfo = String.Empty
                 strPersonFrom = String.Empty
 
             ElseIf currentProcess = Process.UnPressedKey Then  'Gets an unpressed key from another computer. 'X is sent first, then y   
-                otherComObj(lstComputers.IndexOf(strPersonFrom)).SetKeyUp(shtInfo)
-                otherComObj(lstComputers.IndexOf(strPersonFrom)).SetMainPoint(New Point(lstSht(0), lstSht(1)))
+                lstOtherComputerObjects(lstComputers.IndexOf(strPersonFrom)).SetKeyUp(shtInfo)
+                lstOtherComputerObjects(lstComputers.IndexOf(strPersonFrom)).SetMainPoint(New Point(lstSht(0), lstSht(1)))
 
                 'clear variables.
                 shtInfo = String.Empty
@@ -665,7 +658,7 @@ Public Class Form1
     End Sub
 
     Private Sub AddComputerToList(ByVal strName As String)
-        otherComObj.Add(New Player(New Point(0, 0), imgGoodSpriteSheet, 32))  'Adds a new character to the screen
+        lstOtherComputerObjects.Add(New Player(New Point(0, 0), imgGoodSpriteSheet, 32))  'Adds a new character to the screen
         lstComputers.Add(strName)
         lbxComputersConnectedTo.Items.Add(strName)
     End Sub
