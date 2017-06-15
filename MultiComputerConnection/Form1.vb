@@ -65,8 +65,8 @@ Public Class Form1
 
         imgCircle = Image.FromFile(currentFileDirectory & "Circle.png")
 
-        drawMap1 = Image.FromFile(currentFileDirectory & "ColliderMap2Draw.png")
-        collisionMap1 = Image.FromFile(currentFileDirectory & "ColliderMap2.png")
+        drawMap1 = Image.FromFile(currentFileDirectory & "ActualMapDraw.png")
+        collisionMap1 = Image.FromFile(currentFileDirectory & "ActualMapMath.png")
 
         mapObj = New CollisionMap(drawMap1, collisionMap1)
 
@@ -81,7 +81,6 @@ Public Class Form1
 
         stw.Start()
     End Sub
-
 
     Private Sub PaintMain(ByVal o As Object, ByVal e As PaintEventArgs) Handles pbxPlayArea.Paint
         For Each obj As AnimationObject In lstAnimationObjects 'Draws animations
@@ -309,7 +308,6 @@ Public Class Form1
     Public pntMouse As Point
     Private Sub Form1_MouseMove(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles pbxPlayArea.MouseMove
         pntMouse = New Point(e.X, e.Y)
-        Debug.Print("HE, : " & pntMouse.ToString)
     End Sub
 
     Private Sub GiveKeyDownToFriends(ByVal strMyName As String, ByVal key As Char, ByVal mousePnt As Point)
