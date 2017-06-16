@@ -117,7 +117,7 @@ Partial Class Form1
         '
         'pbxPlayArea
         '
-        Me.pbxPlayArea.BackColor = System.Drawing.Color.PeachPuff
+        Me.pbxPlayArea.BackColor = System.Drawing.Color.Black
         Me.pbxPlayArea.Location = New System.Drawing.Point(13, 13)
         Me.pbxPlayArea.Name = "pbxPlayArea"
         Me.pbxPlayArea.Size = New System.Drawing.Size(1149, 964)

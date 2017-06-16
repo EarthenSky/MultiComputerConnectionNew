@@ -45,7 +45,7 @@ Public Class Form1
     Public meObj As AnimationObject
     Public lstOtherComputerObjects As New List(Of Player)
 
-    Public lstAnimationObjects As New List(Of AnimationObject)
+    Public lstAI As New List(Of AI)
 
     Public lstMapCircles As New List(Of OverDropObject)  'Holds the circles that make the map look cool.  Yeah, thats what they're for...
 
@@ -57,17 +57,26 @@ Public Class Form1
     Public stwDebug As New Stopwatch()
 
     Private Sub Form1_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
+        'Attach textures to project
         imgGoodSpriteSheet = Image.FromFile(strCurrentFileDirectory & "MainChar2_SpriteSheet.png")
         imgEnemySpriteSheet = Image.FromFile(strCurrentFileDirectory & "BugOne_MiniEnemy_SpriteSheet.png")
         imgDrawMap = Image.FromFile(strCurrentFileDirectory & "ActualMapDraw.png")
         imgCollisionMap = Image.FromFile(strCurrentFileDirectory & "ActualMapMath.png")
         imgCircle = Image.FromFile(strCurrentFileDirectory & "Circle.png")
 
+        'create the character and its attack circle.
+        meObj = New AnimationObject(New Point(700, 700), imgGoodSpriteSheet, 16, 100)
+        meObj.lstPointPosition.Add(New CircleBox(New Point(0, 0), 32))
+
+        'create the map
         mapMain = New CollisionMap(imgDrawMap, imgCollisionMap)
-        meObj = New AnimationObject(New Point(200, 200), imgGoodSpriteSheet, 16, 100)
-        lstAnimationObjects.Add(New AnimationObject(New Point(0, 0), imgEnemySpriteSheet, 32, 100))
+
+        'create the AI's
+        lstAI.Add(New AI(New Point(780, 350), imgEnemySpriteSheet, 22, 100))
 
         AddCircles()
+
+        PlayLoopingBackgroundSoundFile() 'Start awesome music
 
         Me.KeyPreview = True
 
@@ -78,26 +87,23 @@ Public Class Form1
         stwDebug.Start()
     End Sub
 
-    Private Sub AddCircles()  'There isn't much time left so I did this.
+    Private Sub AddCircles()  'There isn't much time left so I did this to fix collsion.
         lstMapCircles.Add(New OverDropObject(New Point(220, 400), imgCircle, 64))
         lstMapCircles.Add(New OverDropObject(New Point(620, 300), imgCircle, 64))
         lstMapCircles.Add(New OverDropObject(New Point(880, 420), imgCircle, 64))
+        lstMapCircles.Add(New OverDropObject(New Point(44, 490), imgCircle, 64))
+        lstMapCircles.Add(New OverDropObject(New Point(780, 660), imgCircle, 64))
+        lstMapCircles.Add(New OverDropObject(New Point(650, 125), imgCircle, 64))
+    End Sub
+
+    Sub PlayLoopingBackgroundSoundFile()
+        My.Computer.Audio.Play(strCurrentFileDirectory & "126(3 - Chaosotacitc Skies).wav", AudioPlayMode.BackgroundLoop)
     End Sub
 
     Public sngRotationFactor As Single
     Private Sub PaintMain(ByVal o As Object, ByVal e As PaintEventArgs) Handles pbxPlayArea.Paint
-        For Each obj As AnimationObject In lstAnimationObjects 'Draws animations
-            If obj.pntCurrentImgIndexes.X <> -1 Then
-                e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.GetMainPoint(0).pnt.X, obj.GetMainPoint(0).pnt.Y, 256, 256),
-                                     obj.lstAnimations(obj.pntCurrentImgIndexes.X)(obj.pntCurrentImgIndexes.Y), System.Drawing.GraphicsUnit.Pixel)
-            Else
-                e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.GetMainPoint(0).pnt.X, obj.GetMainPoint(0).pnt.Y, 256, 256),
-                                     obj.lstAnimations(0)(0), GraphicsUnit.Pixel)
-            End If
-        Next
-
         mapMain.Draw(e)  'Draw at the bottom.
-        For Each obj As OverDropObject In lstMapCircles 'Draws circle things  'draw at bottom too.
+        For Each obj As OverDropObject In lstMapCircles 'Draws circle things  'Draw at bottom too.
             e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.GetDrawPoint(0).X - obj.GetMainPoint(0).sngRadius / 2, obj.GetDrawPoint(0).Y - obj.GetMainPoint(0).sngRadius / 2, obj.GetMainPoint(0).sngRadius * 2, obj.GetMainPoint(0).sngRadius * 2))
         Next
 
@@ -106,14 +112,23 @@ Public Class Form1
             'e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.GetDrawPoint().X, obj.GetDrawPoint().Y, obj.imgMainImage.Width, obj.imgMainImage.Height / 2))
         Next
 
+        For Each obj As AnimationObject In lstAI 'Draws AI
+            If obj.pntCurrentImgIndexes.X <> -1 Then
+                e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.GetMainPoint(0).pnt.X, obj.GetMainPoint(0).pnt.Y, 64, 64),
+                                     obj.lstAnimations(obj.pntCurrentImgIndexes.X)(obj.pntCurrentImgIndexes.Y), System.Drawing.GraphicsUnit.Pixel)
+            Else
+                e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.GetMainPoint(0).pnt.X, obj.GetMainPoint(0).pnt.Y, 64, 64),
+                                     obj.lstAnimations(0)(0), GraphicsUnit.Pixel)
+            End If
+        Next
+
+        'Rotates the Character.
         Dim bmpTexture As New Bitmap(imgCircle)
-
         Dim mtxRotate As New Drawing2D.Matrix(1, 0, 0, 1, 1, 0)
-
         mtxRotate.RotateAt(sngRotationFactor, New PointF(meObj.GetMainPoint(0).pnt.X + 32, meObj.GetMainPoint(0).pnt.Y + 32), Drawing2D.MatrixOrder.Append)
-
         e.Graphics.Transform = mtxRotate
 
+        'Draws Character Animation.
         If meObj.pntCurrentImgIndexes.X <> -1 Then
             e.Graphics.DrawImage(meObj.imgMainImage, New Rectangle(meObj.GetMainPoint(0).pnt.X, meObj.GetMainPoint(0).pnt.Y, 64, 64),
                                  meObj.lstAnimations(meObj.pntCurrentImgIndexes.X)(meObj.pntCurrentImgIndexes.Y), System.Drawing.GraphicsUnit.Pixel)
@@ -123,8 +138,8 @@ Public Class Form1
         End If
     End Sub
 
-    Private shtCharSpeed As Short = 4
-    Private shtMeCharSpeed As Short = 4
+    Private shtCharSpeed As Short = 8
+    Private shtMeCharSpeed As Short = 8
     Private Sub tmrGameUpdate_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles tmrGameUpdate.Tick
         stwDebug.Stop()
         Me.Text = "Last tick, ms : " & Math.Round(stwDebug.ElapsedMilliseconds / 5).ToString
@@ -170,6 +185,21 @@ Public Class Form1
             CircleCollisionWall(obj, meObj)
         Next
 
+        For Each obj As AI In lstAI 'Colliding Ai with player
+            CircleCollisionDynamic(obj, meObj)
+        Next
+
+        For Each obj As AI In lstAI 'Colliding Ai with walls
+            Dim pntTemp As Point = mapMain.CheckCollision(obj.GetMainPoint(0), obj.pntLastPos)
+            obj.SetMainPoint(New Point(obj.GetMainPoint(0).pnt.X + pntTemp.X, obj.GetMainPoint(0).pnt.Y + pntTemp.Y))
+        Next
+
+        'Me and all of the circle wall things
+        For Each objCircle As OverDropObject In lstMapCircles
+            For Each objAI As AI In lstAI 'Colliding Ai with walls
+                CircleCollisionWall(objCircle, objAI)
+            Next
+        Next
         Refresh()
     End Sub
 
@@ -179,48 +209,97 @@ Public Class Form1
         sngRotationFactor = angle
     End Sub
 
+    Public pntMouse As Point
+    Private Sub Form1_MouseMove(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles pbxPlayArea.MouseMove
+        pntMouse = New Point(e.X, e.Y)
+        'Debug.Print("num is, " & pntMouse.ToString())
+    End Sub
+
+    Private Sub MouseClickDown(ByVal sender As Object, ByVal e As MouseEventArgs) Handles pbxPlayArea.MouseDown
+        If e.Button = Windows.Forms.MouseButtons.Left Then
+            meObj.SetAnimationInterval(25)
+            meObj.PlayAnimation(1)
+        End If
+    End Sub
+
     Private Sub MovementStuff()
         If blnWDown = True Then
-            Dim run As Double = pntMouse.X - meObj.GetMainPoint(0).pnt.X - 32
             Dim rise As Double = pntMouse.Y - meObj.GetMainPoint(0).pnt.Y - 32
+            Dim run As Double = pntMouse.X - meObj.GetMainPoint(0).pnt.X - 32
 
-            Dim scale As Double = shtMeCharSpeed / FindDistance(pntMouse, meObj.GetMainPoint(0).pnt)
+            Dim dis As Double = FindDistance(pntMouse, meObj.GetMainPoint(0).pnt)
+            Dim scale As Double = shtMeCharSpeed / dis
 
             rise *= scale
             run *= scale
+
+            Dim num = Math.Abs(rise) + Math.Abs(run)
+            If num <> 0 Then
+                Dim scale2 As Double = shtMeCharSpeed / num
+                rise *= scale2
+                run *= scale2
+            End If
+
             meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X + run, meObj.GetMainPoint(0).pnt.Y + rise))
-            'mapMain.pntMapPos = New Point(mapMain.pntMapPos.X - run, mapMain.pntMapPos.Y - rise)
+            Debug.Print(Math.Sqrt(sqr(rise) + sqr(rise)) & " is size")
         ElseIf blnSDown = True Then
-            Dim run As Double = pntMouse.X - meObj.GetMainPoint(0).pnt.X - 32
             Dim rise As Double = pntMouse.Y - meObj.GetMainPoint(0).pnt.Y - 32
+            Dim run As Double = pntMouse.X - meObj.GetMainPoint(0).pnt.X - 32
 
-            Dim scale As Double = shtMeCharSpeed / FindDistance(pntMouse, meObj.GetMainPoint(0).pnt)
+            Dim dis As Double = FindDistance(pntMouse, meObj.GetMainPoint(0).pnt)
+            Dim scale As Double = shtMeCharSpeed / dis
 
             rise *= scale
             run *= scale
+
+            Dim num = Math.Abs(rise) + Math.Abs(run)
+            If num <> 0 Then
+                Dim scale2 As Double = shtMeCharSpeed / num
+                rise *= scale2
+                run *= scale2
+            End If
+
             meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X - run, meObj.GetMainPoint(0).pnt.Y - rise))
-            'mapMain.pntMapPos = New Point(mapMain.pntMapPos.X + run, mapMain.pntMapPos.Y + rise)
+            Debug.Print(Math.Sqrt(sqr(rise) + sqr(rise)) & " is size")
         End If
 
         For Each plyr As Player In lstOtherComputerObjects  'moves the Other computers' objects
             If plyr.blnWDown = True Then
-                Dim run As Double = plyr.pntMyMousePos.X - meObj.GetMainPoint(0).pnt.X - 32
-                Dim rise As Double = plyr.pntMyMousePos.Y - meObj.GetMainPoint(0).pnt.Y - 32
+                Dim run As Double = plyr.pntMyMousePos.X - plyr.GetMainPoint(0).pnt.X - 32
+                Dim rise As Double = plyr.pntMyMousePos.Y - plyr.GetMainPoint(0).pnt.Y - 32
 
-                Dim scale As Double = shtCharSpeed / FindDistance(plyr.pntMyMousePos, meObj.GetMainPoint(0).pnt)
+                Dim dis As Double = FindDistance(plyr.pntMyMousePos, plyr.GetMainPoint(0).pnt)
+                Dim scale As Double = shtCharSpeed / dis
 
                 rise *= scale
                 run *= scale
-                meObj.SetMainPoint(New Point(plyr.GetMainPoint(0).pnt.X + run, plyr.GetMainPoint(0).pnt.Y + rise))
+
+                Dim num = Math.Abs(rise) + Math.Abs(run)
+                If num <> 0 Then
+                    Dim scale2 As Double = shtCharSpeed / num
+                    rise *= scale2
+                    run *= scale2
+                End If
+
+                plyr.SetMainPoint(New Point(plyr.GetMainPoint(0).pnt.X + run, plyr.GetMainPoint(0).pnt.Y + rise))
             ElseIf plyr.blnSDown = True Then
-                Dim run As Double = pntMouse.X - meObj.GetMainPoint(0).pnt.X - 32
-                Dim rise As Double = pntMouse.Y - meObj.GetMainPoint(0).pnt.Y - 32
+                Dim run As Double = plyr.pntMyMousePos.X - plyr.GetMainPoint(0).pnt.X - 32
+                Dim rise As Double = plyr.pntMyMousePos.Y - plyr.GetMainPoint(0).pnt.Y - 32
 
-                Dim scale As Double = shtCharSpeed / FindDistance(pntMouse, meObj.GetMainPoint(0).pnt)
+                Dim dis As Double = FindDistance(plyr.pntMyMousePos, plyr.GetMainPoint(0).pnt)
+                Dim scale As Double = shtCharSpeed / dis
 
                 rise *= scale
                 run *= scale
-                meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X - run, meObj.GetMainPoint(0).pnt.Y - rise))
+
+                Dim num = Math.Abs(rise) + Math.Abs(run)
+                If num <> 0 Then
+                    Dim scale2 As Double = shtCharSpeed / num
+                    rise *= scale2
+                    run *= scale2
+                End If
+
+                plyr.SetMainPoint(New Point(plyr.GetMainPoint(0).pnt.X - run, plyr.GetMainPoint(0).pnt.Y - rise))
             End If
         Next
     End Sub
@@ -291,24 +370,30 @@ Public Class Form1
 
         If e.KeyCode = Keys.Space Then
             blnDashOn = True
-            shtMeCharSpeed = 10
+            shtMeCharSpeed = 16
         End If
+
+        
 
         'Debug keys
         If e.KeyCode = Keys.E Then
-            lstAnimationObjects(0).PlayAnimation(0)
+            lstAI(0).PlayAnimation(0)
         ElseIf e.KeyCode = Keys.Up Then
-            lstAnimationObjects(0).PlayAnimation(1)
+            lstAI(0).PlayAnimation(1)
         ElseIf e.KeyCode = Keys.T Then
-            lstAnimationObjects(0).StopAnimation()
+            lstAI(0).StopAnimation()
         ElseIf e.KeyCode = Keys.O Then
             sngRotationFactor += 6
         ElseIf e.KeyCode = Keys.P Then
             sngRotationFactor -= 6
+        ElseIf e.KeyCode = Keys.R Then
+            For Each obj As AI In lstAI 'Colliding Ai with walls
+                obj.SetMainPoint(New Point(obj.GetMainPoint(0).pnt.X - 1, obj.GetMainPoint(0).pnt.Y))
+            Next
         End If
     End Sub
 
-    Private Sub MoveButtonUp(ByVal o As System.Object, ByVal e As KeyEventArgs) Handles Me.KeyUp
+    Private Sub ButtonUnPress(ByVal o As System.Object, ByVal e As KeyEventArgs) Handles Me.KeyUp
         If e.KeyCode = Keys.W Then
             blnWDown = False
             GiveKeyUpToFriends(My.Computer.Name, "W", meObj.GetDrawPoint(0))
@@ -366,21 +451,8 @@ Public Class Form1
         Next
     End Sub
 
-    Public pntMouse As Point
-    Private Sub Form1_MouseMove(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles pbxPlayArea.MouseMove
-        pntMouse = New Point(e.X, e.Y)
-        Debug.Print("num is, " & pntMouse.ToString())
-    End Sub
-
-    Private Sub MouseClickDown(ByVal sender As Object, ByVal e As MouseEventArgs) Handles pbxPlayArea.MouseDown
-        If e.Button = Windows.Forms.MouseButtons.Left Then
-            meObj.SetAnimationInterval(25)
-            meObj.PlayAnimation(1)
-        End If
-    End Sub
-
     'Start Converted Internet
-    Function sqr(ByVal x) As Integer
+    Function sqr(ByVal x) As Double
         Return x * x
     End Function
 

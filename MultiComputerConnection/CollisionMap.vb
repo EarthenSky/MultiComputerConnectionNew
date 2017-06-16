@@ -38,14 +38,13 @@ Public Class CollisionMap 'Instantiate to make a collider map of lines, call the
     Private imgDrawMap As Image
 
     Sub New(ByVal drawMap As Image, ByVal colMap As Image)
-        Debug.Print(FindMidPoint(New Point(1, 3), New Point(3, 1)).ToString())
+        'Debug.Print(FindMidPoint(New Point(1, 3), New Point(3, 1)).ToString())
         LoadMap(colMap)
         imgDrawMap = drawMap
     End Sub
 
     Private Sub LoadMap(ByVal colMap As Image)
         Dim bmpCollision As New Bitmap(colMap)
-
 
         'Im not really using the green blue things, depricated. (spelling?)
         Dim shtLastPoint As Short = 0
@@ -135,30 +134,30 @@ Public Class CollisionMap 'Instantiate to make a collider map of lines, call the
         Next
     End Sub
 
-    Private Sub SortByVal(ByRef lst As List(Of PixelPoint))  '++Better than my other sort
+    Private Sub SortByVal(ByRef lst As List(Of PixelPoint))  'Better than my other sort
         'makes temp equal to the list box
-        Dim temp As New List(Of PixelPoint)
+        Dim lstTemp As New List(Of PixelPoint)
         For index As Short = 0 To lst.Count - 1 Step 1
-            temp.Add(New PixelPoint(lst(index).pnt, lst(index).val))
+            lstTemp.Add(New PixelPoint(lst(index).pnt, lst(index).val))
         Next
 
         Dim lstShortTemp As New List(Of PixelPoint)
         Dim shtSmallest As Short = Short.MaxValue
-        Dim index2 As Short = 0
+        Dim jIndex As Short = 0
 
-        While temp.Count - 1 >= 0
+        While lstTemp.Count - 1 >= 0
             shtSmallest = Short.MaxValue
-            index2 = 0
+            jIndex = 0
 
-            For index As Short = 0 To temp.Count - 1 Step 1
-                If temp(index).val < shtSmallest Then
-                    shtSmallest = temp(index).val
-                    index2 = index
+            For index As Short = 0 To lstTemp.Count - 1 Step 1
+                If lstTemp(index).val < shtSmallest Then
+                    shtSmallest = lstTemp(index).val
+                    jIndex = index
                 End If
             Next
 
-            lstShortTemp.Add(New PixelPoint(temp(index2).pnt, temp(index2).val))
-            temp.RemoveAt(index2)
+            lstShortTemp.Add(New PixelPoint(lstTemp(jIndex).pnt, lstTemp(jIndex).val))
+            lstTemp.RemoveAt(jIndex)
         End While
 
         For index As Short = 0 To lst.Count - 1 Step 1
@@ -177,7 +176,6 @@ Public Class CollisionMap 'Instantiate to make a collider map of lines, call the
     End Function
 
     Public Sub CollisionLoop(ByVal cbx As CircleBox, ByRef xPush As Short, ByRef yPush As Short, ByVal pntLast As Point)
-
         Dim shtDiv As Short = 0
 
         For index As Short = 0 To lstLstSections(FindSection(cbx)).lstLines.Count - 1  'Loops through all of the lines in the specified list.
@@ -292,12 +290,12 @@ Public Class CollisionMap 'Instantiate to make a collider map of lines, call the
     End Function
 
     Function DistanceToSegmentSquared(ByVal p As Point, ByVal v As Point, ByVal w As Point) As Long
-        Dim l2 = DistanceSquared(v, w)
-        If l2 = 0 Then
+        Dim line2 = DistanceSquared(v, w)
+        If line2 = 0 Then
             Return DistanceSquared(p, v)
         End If
 
-        Dim t = ((p.X - v.X) * (w.X - v.X) + (p.Y - v.Y) * (w.Y - v.Y)) / l2
+        Dim t = ((p.X - v.X) * (w.X - v.X) + (p.Y - v.Y) * (w.Y - v.Y)) / line2
         t = Math.Max(0, Math.Min(1, t))
         Return DistanceSquared(p, New Point(v.X + t * (w.X - v.X), v.Y + t * (w.Y - v.Y)))
     End Function
