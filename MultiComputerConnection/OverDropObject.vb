@@ -18,13 +18,13 @@ Public Class OverDropObject
         imgMainImage = img
     End Sub
 
-    Public Function GetDrawPoint(ByVal shtIndex As Short) As Point
+    Public Function GetDrawPoint(ByVal shtIndex As Short) As Point 'Only pnt
         If lstPointPosition.Count >= 1 Then  'TODO: take this away in the future, this is debug
             Return lstPointPosition(shtIndex).pnt
         End If
     End Function
 
-    Public Function GetMainPoint(ByVal shtIndex As Short) As CircleBox
+    Public Function GetMainPoint(ByVal shtIndex As Short) As CircleBox 'Has pnt and rad
         If lstPointPosition.Count >= 1 Then  'TODO: take this away in the future, this is debug
             'Return New CircleBox(New Point(lstPointPosition(shtIndex).pnt.X + (imgMainImage.Width / 2), lstPointPosition(shtIndex).pnt.Y + (imgMainImage.Height / 2)), lstPointPosition(shtIndex).sngRadius)
             Return New CircleBox(New Point(lstPointPosition(shtIndex).pnt.X, lstPointPosition(shtIndex).pnt.Y), lstPointPosition(shtIndex).sngRadius)

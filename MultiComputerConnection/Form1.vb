@@ -47,8 +47,7 @@ Public Class Form1
 
     Public lstAnimationObjects As New List(Of AnimationObject)
 
-    'Public pntTest1 As New Point(300, 200)
-    'Public pntTest2 As New Point(400, 300)
+    Public lstMapCircles As New List(Of OverDropObject)  'Holds the circles that make the map look cool.  Yeah, thats what they're for...
 
     Public imgCollisionMap As Image
     Public imgDrawMap As Image
@@ -68,6 +67,8 @@ Public Class Form1
         meObj = New AnimationObject(New Point(200, 200), imgGoodSpriteSheet, 16, 100)
         lstAnimationObjects.Add(New AnimationObject(New Point(0, 0), imgEnemySpriteSheet, 32, 100))
 
+        AddCircles()
+
         Me.KeyPreview = True
 
         Dim ListenerThread As New Thread(New ThreadStart(AddressOf Listening))
@@ -75,6 +76,12 @@ Public Class Form1
         ListenerThread.Start()
 
         stwDebug.Start()
+    End Sub
+
+    Private Sub AddCircles()  'There isn't much time left so I did this.
+        lstMapCircles.Add(New OverDropObject(New Point(220, 400), imgCircle, 64))
+        lstMapCircles.Add(New OverDropObject(New Point(620, 300), imgCircle, 64))
+        lstMapCircles.Add(New OverDropObject(New Point(880, 420), imgCircle, 64))
     End Sub
 
     Public sngRotationFactor As Single
@@ -90,6 +97,9 @@ Public Class Form1
         Next
 
         mapMain.Draw(e)  'Draw at the bottom.
+        For Each obj As OverDropObject In lstMapCircles 'Draws circle things  'draw at bottom too.
+            e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.GetDrawPoint(0).X - obj.GetMainPoint(0).sngRadius / 2, obj.GetDrawPoint(0).Y - obj.GetMainPoint(0).sngRadius / 2, obj.GetMainPoint(0).sngRadius * 2, obj.GetMainPoint(0).sngRadius * 2))
+        Next
 
         For Each obj As Player In lstOtherComputerObjects 'Draws otherComputer controlled objects
             e.Graphics.DrawImage(imgEnemySpriteSheet, New Rectangle(obj.GetDrawPoint(0).X, obj.GetDrawPoint(0).Y, meObj.imgMainImage.Width / 4, meObj.imgMainImage.Height / 4))
@@ -122,13 +132,54 @@ Public Class Form1
 
         LookAtMouse()
 
-        If meObj.pntCurrentImgIndexes.X = 1 Then
+        If meObj.pntCurrentImgIndexes.X = 1 Then 'Ends the animation after attacking.
             If meObj.pntCurrentImgIndexes.Y = 3 Then
                 meObj.SetAnimationInterval(100)
                 meObj.PlayAnimation(0)
             End If
         End If
 
+        MovementStuff()
+
+        'Check other computer for collision with walls
+        For index As Short = 0 To lstOtherComputerObjects.Count - 1
+            Dim pntTemp As Point = mapMain.CheckCollision(lstOtherComputerObjects(index).GetMainPoint(0), lstOtherComputerObjects(index).pntLastPos)
+            lstOtherComputerObjects(index).SetMainPoint(New Point(lstOtherComputerObjects(index).GetMainPoint(0).pnt.X + pntTemp.X, lstOtherComputerObjects(index).GetMainPoint(0).pnt.Y + pntTemp.Y))
+            'mapMain.CheckCollision(lstOtherComputerObjects(index).GetMainPoint(0), lstOtherComputerObjects(index).pntLastPos)
+        Next
+
+        'Check main character for collision with the walls
+        Dim pntTemp2 As Point = mapMain.CheckCollision(meObj.GetMainPoint(0), meObj.pntLastPos)
+        meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X + pntTemp2.X, meObj.GetMainPoint(0).pnt.Y + pntTemp2.Y))
+        'mapMain.CheckCollision(meObj.GetMainPoint(0), meObj.pntLastPos)
+
+        'MeObj collision with the other computer objects
+        If lstOtherComputerObjects.Count > 0 Then
+            CircleCollisionDynamic(lstOtherComputerObjects(0), meObj)  'TODO: test this
+        End If
+
+        'Other computers and the circle wall things
+        For index As Short = 0 To lstOtherComputerObjects.Count - 1
+            For Each obj As OverDropObject In lstMapCircles
+                CircleCollisionWall(obj, lstOtherComputerObjects(index))
+            Next
+        Next
+
+        'Me and all of the circle wall things
+        For Each obj As OverDropObject In lstMapCircles
+            CircleCollisionWall(obj, meObj)
+        Next
+
+        Refresh()
+    End Sub
+
+    Private Sub LookAtMouse()
+        Dim angle = FindAngle(pntMouse, New Point(meObj.GetMainPoint(0).pnt.X + 32, meObj.GetMainPoint(0).pnt.Y + 32),
+                              New Point(0, Short.MinValue), New Point(0, Short.MaxValue)) * 57.2958
+        sngRotationFactor = angle
+    End Sub
+
+    Private Sub MovementStuff()
         If blnWDown = True Then
             Dim run As Double = pntMouse.X - meObj.GetMainPoint(0).pnt.X - 32
             Dim rise As Double = pntMouse.Y - meObj.GetMainPoint(0).pnt.Y - 32
@@ -138,6 +189,7 @@ Public Class Form1
             rise *= scale
             run *= scale
             meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X + run, meObj.GetMainPoint(0).pnt.Y + rise))
+            'mapMain.pntMapPos = New Point(mapMain.pntMapPos.X - run, mapMain.pntMapPos.Y - rise)
         ElseIf blnSDown = True Then
             Dim run As Double = pntMouse.X - meObj.GetMainPoint(0).pnt.X - 32
             Dim rise As Double = pntMouse.Y - meObj.GetMainPoint(0).pnt.Y - 32
@@ -147,6 +199,7 @@ Public Class Form1
             rise *= scale
             run *= scale
             meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X - run, meObj.GetMainPoint(0).pnt.Y - rise))
+            'mapMain.pntMapPos = New Point(mapMain.pntMapPos.X + run, mapMain.pntMapPos.Y + rise)
         End If
 
         For Each plyr As Player In lstOtherComputerObjects  'moves the Other computers' objects
@@ -170,102 +223,45 @@ Public Class Form1
                 meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X - run, meObj.GetMainPoint(0).pnt.Y - rise))
             End If
         Next
+    End Sub
 
-        'Check other computer for collision with walls
-        For index As Short = 0 To lstOtherComputerObjects.Count - 1
-            Dim pntTemp As Point = mapMain.CheckCollision(lstOtherComputerObjects(index).GetMainPoint(0), lstOtherComputerObjects(index).pntLastPos)
-            lstOtherComputerObjects(index).SetMainPoint(New Point(lstOtherComputerObjects(index).GetMainPoint(0).pnt.X + pntTemp.X, lstOtherComputerObjects(index).GetMainPoint(0).pnt.Y + pntTemp.Y))
-
-        Next
-
-        'Check main character for collision with the walls
-        Dim pntTemp2 As Point = mapMain.CheckCollision(meObj.GetMainPoint(0), meObj.pntLastPos)
-        meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X + pntTemp2.X, meObj.GetMainPoint(0).pnt.Y + pntTemp2.Y))
-
-#If False Then
-
-        'Debug.Print(int.ToString & " is Distance")
-        If DistanceToSegment(meObj.GetMainPoint(0).pnt, pntTest1, pntTest2) < meObj.GetMainPoint(0).sngRadius Then
-
-            Dim pnt1 As Point
-            Dim pnt2 As Point
-            If pntTest1.X > pntTest2.X Then
-                pnt1 = pntTest1
-                pnt2 = pntTest2
-            Else
-                pnt1 = pntTest1
-                pnt2 = pntTest2
-            End If
-
-            Dim xMove, yMove As Short
-            'Works  1.5708 = 90 deg in radians
-            Dim bAngle As Single = 1.5708 - Math.Abs(FindAngle(pnt1, pnt2, meObj.GetMainPoint(0).pnt, pnt2))
-            Debug.Print(bAngle & "=b, " & pnt1.ToString & "=pnt1, " & pnt2.ToString & "=pnt2, " & meObj.GetMainPoint(0).pnt.ToString & "=cbx.pnt.")
-            Dim nSide As Single = Math.Cos(bAngle) * FindDistance(meObj.GetMainPoint(0).pnt, pnt2)
-            'Works
-            Dim lLength As Single = Math.Abs(meObj.GetMainPoint(0).sngRadius - nSide)
-
-            Dim angleCDDL As Single = FindAngle(pnt1, pnt2, FindIntersectPoint(pnt1, pnt2, New Point(0, Short.MaxValue), New Point(0, Short.MinValue)), New Point(0, Short.MaxValue))
-
-            Dim shtSideValue As Short = (meObj.pntLastPos.X - pnt1.X) * (pnt2.Y - pnt1.Y) - (meObj.pntLastPos.Y - pnt1.Y) * (pnt2.X - pnt1.X)  'Negitave and positive says what side the point is on, thanks internet code.
-            Debug.Print(shtSideValue)
-            If pnt1.Y < pnt2.Y Then
-                If shtSideValue < 0 Then
-                    angleCDDL = (1.5708 * 2) + angleCDDL
-                End If
-                Me.Text = "1" 'TODO: TYPE 1
-            Else
-                If shtSideValue < 0 Then
-                    angleCDDL = (1.5708 * 2) + angleCDDL
-                End If
-                Me.Text = "2"  'TODO: TYPE 2 
-            End If
-
-            Dim rise As Single = Math.Sin(angleCDDL) * meObj.GetMainPoint(0).sngRadius
-
-            Dim run As Single = Math.Cos(angleCDDL) * meObj.GetMainPoint(0).sngRadius
-
-            Dim scale As Single = lLength / meObj.GetMainPoint(0).sngRadius
-
-            yMove = (rise * scale)
-            xMove = (run * scale)
-
-            meObj.SetMainPoint(New Point(meObj.GetDrawPoint(0).X + xMove, meObj.GetDrawPoint(0).Y + yMove))
-        End If
-#End If
-
-        If lstOtherComputerObjects.Count > 0 AndAlso FindDistance(lstOtherComputerObjects(0).GetDrawPoint(0), meObj.GetDrawPoint(0)) < meObj.GetMainPoint(0).sngRadius + lstOtherComputerObjects(0).GetMainPoint(0).sngRadius Then
+    Private Sub CircleCollisionDynamic(ByRef objDynamic1 As OverDropObject, ByRef objDynamic2 As OverDropObject) 'checks collision and pushes both objects back, used for pushing . Also, Inheritance :D
+        'Finds the rise and run of the two radius of the circles and scales it down to the overlap.
+        If FindDistance(objDynamic1.GetDrawPoint(0), objDynamic2.GetDrawPoint(0)) < objDynamic2.GetMainPoint(0).sngRadius + objDynamic1.GetMainPoint(0).sngRadius Then
             Dim xMove, yMove As Single
 
-            'Finds the rise and run of the two radius of the circles and scales it down to the overlap.
+            Dim run As Single = objDynamic2.GetMainPoint(0).pnt.X - objDynamic1.GetMainPoint(0).pnt.X
+            Dim rise As Single = objDynamic2.GetMainPoint(0).pnt.Y - objDynamic1.GetMainPoint(0).pnt.Y
 
-            Dim run As Single = meObj.GetMainPoint(0).pnt.X - lstOtherComputerObjects(0).GetMainPoint(0).pnt.X
-            Dim rise As Single = meObj.GetMainPoint(0).pnt.Y - lstOtherComputerObjects(0).GetMainPoint(0).pnt.Y
+            Dim smallDis As Single = objDynamic2.GetMainPoint(0).sngRadius + objDynamic1.GetMainPoint(0).sngRadius - FindDistance(objDynamic1.GetDrawPoint(0), objDynamic2.GetDrawPoint(0))
+            Dim scaleFactor As Single = smallDis / (objDynamic2.GetMainPoint(0).sngRadius + objDynamic1.GetMainPoint(0).sngRadius)
 
-            Dim smallDis As Single = meObj.GetMainPoint(0).sngRadius + lstOtherComputerObjects(0).GetMainPoint(0).sngRadius - FindDistance(lstOtherComputerObjects(0).GetDrawPoint(0), meObj.GetDrawPoint(0))
-            Dim scaleFactor As Single = smallDis / (meObj.GetMainPoint(0).sngRadius + lstOtherComputerObjects(0).GetMainPoint(0).sngRadius)
-
+            'Scale the rise run to the amount to push back and cuts it in half.
             xMove = run * scaleFactor / 2
             yMove = rise * scaleFactor / 2
 
-            If (blnADown = True Or blnWDown = True) And (blnSDown = False Or blnDDown = False) Then
-                lstOtherComputerObjects(0).SetMainPoint(New Point(lstOtherComputerObjects(0).GetDrawPoint(0).X - xMove, lstOtherComputerObjects(0).GetDrawPoint(0).Y - yMove))
-                meObj.SetMainPoint(New Point(meObj.GetDrawPoint(0).X + xMove, meObj.GetDrawPoint(0).Y + yMove))
-            Else
-                lstOtherComputerObjects(0).SetMainPoint(New Point(lstOtherComputerObjects(0).GetDrawPoint(0).X - xMove, lstOtherComputerObjects(0).GetDrawPoint(0).Y - yMove))
-                meObj.SetMainPoint(New Point(meObj.GetDrawPoint(0).X + xMove, meObj.GetDrawPoint(0).Y + yMove))
-                'otherComObj(0).SetMainPoint(New Point(otherComObj(0).GetDrawPoint().X + xMove, otherComObj(0).GetDrawPoint().Y + yMove))
-                'meObj.SetMainPoint(New Point(meObj.GetDrawPoint().X - xMove, meObj.GetDrawPoint().Y - yMove))
-            End If
+            objDynamic1.SetMainPoint(New Point(objDynamic1.GetDrawPoint(0).X - xMove, objDynamic1.GetDrawPoint(0).Y - yMove))
+            objDynamic2.SetMainPoint(New Point(objDynamic2.GetDrawPoint(0).X + xMove, objDynamic2.GetDrawPoint(0).Y + yMove))
         End If
-
-        Refresh()
     End Sub
 
-    Private Sub LookAtMouse()
-        Dim angle = FindAngle(pntMouse, New Point(meObj.GetMainPoint(0).pnt.X + 32, meObj.GetMainPoint(0).pnt.Y + 32),
-                              New Point(0, Short.MinValue), New Point(0, Short.MaxValue)) * 57.2958
-        sngRotationFactor = angle
+    Private Sub CircleCollisionWall(ByRef objWall As OverDropObject, ByRef objDynamic As OverDropObject) 'checks collision and pushes both objects back, used for pushing . Also, Inheritance :D
+        'Finds the rise and run of the two radius of the circles and scales it down to the overlap.
+        If FindDistance(objWall.GetDrawPoint(0), objDynamic.GetDrawPoint(0)) < objDynamic.GetMainPoint(0).sngRadius + objWall.GetMainPoint(0).sngRadius Then
+            Dim xMove, yMove As Single
+
+            Dim run As Single = objDynamic.GetMainPoint(0).pnt.X - objWall.GetMainPoint(0).pnt.X
+            Dim rise As Single = objDynamic.GetMainPoint(0).pnt.Y - objWall.GetMainPoint(0).pnt.Y
+
+            Dim smallDis As Single = objDynamic.GetMainPoint(0).sngRadius + objWall.GetMainPoint(0).sngRadius - FindDistance(objWall.GetDrawPoint(0), objDynamic.GetDrawPoint(0))
+            Dim scaleFactor As Single = smallDis / (objDynamic.GetMainPoint(0).sngRadius + objWall.GetMainPoint(0).sngRadius)
+
+            'Scales the rise run to the amount to push back.
+            xMove = run * scaleFactor
+            yMove = rise * scaleFactor
+
+            objDynamic.SetMainPoint(New Point(objDynamic.GetDrawPoint(0).X + xMove, objDynamic.GetDrawPoint(0).Y + yMove))
+        End If
     End Sub
 
     Public blnWDown As Boolean = False
@@ -295,7 +291,7 @@ Public Class Form1
 
         If e.KeyCode = Keys.Space Then
             blnDashOn = True
-            shtMeCharSpeed = 15
+            shtMeCharSpeed = 10
         End If
 
         'Debug keys
@@ -328,18 +324,6 @@ Public Class Form1
         If e.KeyCode = Keys.D Then
             blnDDown = False
             GiveKeyUpToFriends(My.Computer.Name, "D", meObj.GetDrawPoint(0))
-        End If
-    End Sub
-
-    Public pntMouse As Point
-    Private Sub Form1_MouseMove(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles pbxPlayArea.MouseMove
-        pntMouse = New Point(e.X, e.Y)
-    End Sub
-
-    Private Sub MouseClickDown(ByVal sender As Object, ByVal e As MouseEventArgs) Handles pbxPlayArea.MouseDown
-        If e.Button = Windows.Forms.MouseButtons.Left Then
-            meObj.SetAnimationInterval(25)
-            meObj.PlayAnimation(1)
         End If
     End Sub
 
@@ -382,7 +366,19 @@ Public Class Form1
         Next
     End Sub
 
-    '#If False Then
+    Public pntMouse As Point
+    Private Sub Form1_MouseMove(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles pbxPlayArea.MouseMove
+        pntMouse = New Point(e.X, e.Y)
+        Debug.Print("num is, " & pntMouse.ToString())
+    End Sub
+
+    Private Sub MouseClickDown(ByVal sender As Object, ByVal e As MouseEventArgs) Handles pbxPlayArea.MouseDown
+        If e.Button = Windows.Forms.MouseButtons.Left Then
+            meObj.SetAnimationInterval(25)
+            meObj.PlayAnimation(1)
+        End If
+    End Sub
+
     'Start Converted Internet
     Function sqr(ByVal x) As Integer
         Return x * x
@@ -433,7 +429,6 @@ Public Class Form1
         Return Math.Sqrt(sqr(pnt2.X - pnt1.X) + sqr(pnt2.Y - pnt1.Y))
     End Function
     'End Converted Internet
-    '#End If
 
     'Main LAN Stuff vvv
     Private Sub Listening()  'starts listening for info from other com.
@@ -450,8 +445,6 @@ Public Class Form1
             End If
         Catch ex As Exception
             Console.WriteLine(ex)
-            'Dim Errorresult As String = ex.Message
-            'MessageBox.Show(Errorresult & vbCrLf & vbCrLf & "???", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
@@ -588,8 +581,6 @@ Public Class Form1
             Me.tbxMessageToSend.Text = "Sent!"
         Catch ex As Exception
             Console.WriteLine(ex)
-            'Dim Errorresult As String = ex.Message
-            'MessageBox.Show(Errorresult & vbCrLf & vbCrLf & "Please Review Client Address", "Error Sending Message", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 

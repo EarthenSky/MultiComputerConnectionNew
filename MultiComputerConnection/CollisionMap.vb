@@ -177,6 +177,7 @@ Public Class CollisionMap 'Instantiate to make a collider map of lines, call the
     End Function
 
     Public Sub CollisionLoop(ByVal cbx As CircleBox, ByRef xPush As Short, ByRef yPush As Short, ByVal pntLast As Point)
+
         Dim shtDiv As Short = 0
 
         For index As Short = 0 To lstLstSections(FindSection(cbx)).lstLines.Count - 1  'Loops through all of the lines in the specified list.
@@ -237,37 +238,36 @@ Public Class CollisionMap 'Instantiate to make a collider map of lines, call the
         Dim xMove, yMove As Single  'I think in this situation this looks a bit better than a point.
         '1.5708 = 90 deg in radians
 
-        Dim beforeB As Single = Math.Abs(FindAngle(pnt1, pnt2, cbx.pnt, pnt2))
-        If beforeB > 1.5708 * 1.5 Then
-            beforeB -= 1.5708 * 2  'IDK why but this sort of fixes the weird bug.
+        Dim sngAAngle As Single = Math.Abs(FindAngle(pnt1, pnt2, cbx.pnt, pnt2))
+        If sngAAngle > 1.5708 * 1.5 Then
+            sngAAngle -= 1.5708 * 2  'IDK why but this sort of fixes the weird bug.
         End If
-        Dim bAngle As Single = 1.5708 - beforeB
-        Debug.Print(bAngle & "=b, " & pnt1.ToString & "=pnt1, " & pnt2.ToString & "=pnt2, " & cbx.pnt.ToString & "=cbx.pnt.")
-        Dim nSide As Single = Math.Cos(bAngle) * FindDistance(cbx.pnt, pnt2)
 
-        Dim lLength As Single = Math.Abs(cbx.sngRadius - nSide)
+        Dim sngBAngle As Single = 1.5708 - sngAAngle
+        Debug.Print(sngBAngle & "=b, " & pnt1.ToString & "=pnt1, " & pnt2.ToString & "=pnt2, " & cbx.pnt.ToString & "=cbx.pnt.")
+        Dim sngNSide As Single = Math.Cos(sngBAngle) * FindDistance(cbx.pnt, pnt2)
 
-        Dim angleCDDL As Single = FindAngle(pnt1, pnt2, FindIntersectPoint(pnt1, pnt2, New Point(0, Short.MaxValue), New Point(0, Short.MinValue)), New Point(0, Short.MaxValue))
+        Dim snglLength As Single = Math.Abs(cbx.sngRadius - sngNSide)
 
-        Dim shtSideValue As Long = (pntLast.X - pnt1.X) * (pnt2.Y - pnt1.Y) - (pntLast.Y - pnt1.Y) * (pnt2.X - pnt1.X)  'Negitave and positive says what side the point is on, thanks internet code.
-        'Debug.Print(shtSideValue)
+        Dim sngAngleCDDL As Single = FindAngle(pnt1, pnt2, FindIntersectPoint(pnt1, pnt2, New Point(0, Short.MaxValue), New Point(0, Short.MinValue)), New Point(0, Short.MaxValue))
+
+        Dim shtSideValue As Long = (pntLast.X - pnt1.X) * (pnt2.Y - pnt1.Y) - (pntLast.Y - pnt1.Y) * (pnt2.X - pnt1.X)  'Negitave and positive says what side the point is on, thanks internet code.\
+
         If pnt1.Y < pnt2.Y Then
             If shtSideValue < 0 Then
-                angleCDDL = (1.5708 * 2) + angleCDDL
+                sngAngleCDDL = (1.5708 * 2) + sngAngleCDDL
             End If
-            Form1.Text = "1" 'TODO: TYPE 1
         Else
             If shtSideValue < 0 Then
-                angleCDDL = (1.5708 * 2) + angleCDDL
+                sngAngleCDDL = (1.5708 * 2) + sngAngleCDDL
             End If
-            Form1.Text = "2"  'TODO: TYPE 2 
         End If
 
-        Dim sngRise As Single = Math.Sin(angleCDDL) * cbx.sngRadius
+        Dim sngRise As Single = Math.Sin(sngAngleCDDL) * cbx.sngRadius
 
-        Dim sngRun As Single = Math.Cos(angleCDDL) * cbx.sngRadius
+        Dim sngRun As Single = Math.Cos(sngAngleCDDL) * cbx.sngRadius
 
-        Dim sngScale As Single = lLength / cbx.sngRadius
+        Dim sngScale As Single = snglLength / cbx.sngRadius
 
         yMove = (sngRise * sngScale)
         xMove = (sngRun * sngScale)
@@ -335,12 +335,9 @@ Public Class CollisionMap 'Instantiate to make a collider map of lines, call the
     'End Converted Internet Code
 
     Dim shtDrawMapScale As Short = 8
+    Public pntMapPos As Point
     Public Sub Draw(ByVal e As PaintEventArgs)  'Call this to draw the map to the screen
-        e.Graphics.DrawImage(imgDrawMap, New Rectangle(Form1.pbxPlayArea.Location().X * 2.5, Form1.pbxPlayArea.Location().Y * 2.3, imgDrawMap.Width * shtDrawMapScale, imgDrawMap.Height * shtDrawMapScale))
-        For Each obj As Line In lstLstSections(0).lstLines
-            'e.Graphics.DrawImage(imgDrawMap, New Rectangle(obj.pnt1.X, obj.pnt1.Y, imgDrawMap.Width / 4, imgDrawMap.Height / 4))
-            'e.Graphics.DrawImage(imgDrawMap, New Rectangle(obj.pnt2.X, obj.pnt2.Y, imgDrawMap.Width / 4, imgDrawMap.Height / 4))
-            ' e.Graphics.DrawImage(imgDrawMap, New Rectangle(FindMidPoint(obj.pnt1, obj.pnt2).X, FindMidPoint(obj.pnt1, obj.pnt2).Y, imgDrawMap.Width / 8, imgDrawMap.Height / 8))
-        Next
+        'magic numbers are some weird offset.
+        e.Graphics.DrawImage(imgDrawMap, New Rectangle((Form1.pbxPlayArea.Location().X * 2.5) + pntMapPos.X, (Form1.pbxPlayArea.Location().Y * 2.3) + pntMapPos.Y, imgDrawMap.Width * shtDrawMapScale, imgDrawMap.Height * shtDrawMapScale))
     End Sub
 End Class
