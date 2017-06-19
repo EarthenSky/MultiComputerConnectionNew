@@ -37,12 +37,14 @@ Public Class Form1
     Private imgGoodSpriteSheet As Image
     Private imgEnemySpriteSheet As Image
     Public imgCircle As Image
+    Private imgHpGood As Image
+    Public imgHpBad As Image
 
     Private listener As New TcpListener(5019)
     Private client As New TcpClient
 
     Public lstComputers As New List(Of String)
-    Public meObj As AnimationObject
+    Public meObj As MainCharacter
     Public lstOtherComputerObjects As New List(Of Player)
 
     Public lstAI As New List(Of AI)
@@ -63,10 +65,12 @@ Public Class Form1
         imgDrawMap = Image.FromFile(strCurrentFileDirectory & "ActualMapDraw.png")
         imgCollisionMap = Image.FromFile(strCurrentFileDirectory & "ActualMapMath.png")
         imgCircle = Image.FromFile(strCurrentFileDirectory & "Circle.png")
+        imgHpGood = Image.FromFile(strCurrentFileDirectory & "HealthGood.png")
+        imgHpBad = Image.FromFile(strCurrentFileDirectory & "HealthBad.png")
 
         'create the character and its attack circle.
-        meObj = New AnimationObject(New Point(700, 700), imgGoodSpriteSheet, 16, 100)
-        meObj.lstPointPosition.Add(New CircleBox(New Point(0, 0), 32))
+        meObj = New MainCharacter(New Point(700, 700), imgGoodSpriteSheet, 16, 100)
+        meObj.lstPointPosition.Add(New CircleBox(New Point(32, 32), 32))
 
         'create the map
         mapMain = New CollisionMap(imgDrawMap, imgCollisionMap)
@@ -122,6 +126,8 @@ Public Class Form1
             End If
         Next
 
+        meObj.DrawHealth(e, imgHpGood, imgHpBad)
+
         'Rotates the Character.
         Dim bmpTexture As New Bitmap(imgCircle)
         Dim mtxRotate As New Drawing2D.Matrix(1, 0, 0, 1, 1, 0)
@@ -144,6 +150,8 @@ Public Class Form1
         stwDebug.Stop()
         Me.Text = "Last tick, ms : " & Math.Round(stwDebug.ElapsedMilliseconds / 5).ToString
         stwDebug.Restart()
+
+        meObj.Update()
 
         LookAtMouse()
 
@@ -186,7 +194,9 @@ Public Class Form1
         Next
 
         For Each obj As AI In lstAI 'Colliding Ai with player
-            CircleCollisionDynamic(obj, meObj)
+            If CircleCollisionDynamic(obj, meObj) = True Then
+                meObj.HitAI()
+            End If
         Next
 
         For Each obj As AI In lstAI 'Colliding Ai with walls
@@ -201,6 +211,47 @@ Public Class Form1
             Next
         Next
         Refresh()
+    End Sub
+
+    Private Function CircleCollisionDynamic(ByRef objDynamic1 As OverDropObject, ByRef objDynamic2 As OverDropObject) As Boolean 'checks collision and pushes both objects back, used for pushing . Also, Inheritance :D
+        'Finds the rise and run of the two radius of the circles and scales it down to the overlap.
+        If FindDistance(objDynamic1.GetDrawPoint(0), objDynamic2.GetDrawPoint(0)) < objDynamic2.GetMainPoint(0).sngRadius + objDynamic1.GetMainPoint(0).sngRadius Then
+            Dim xMove, yMove As Single
+
+            Dim run As Single = objDynamic2.GetMainPoint(0).pnt.X - objDynamic1.GetMainPoint(0).pnt.X
+            Dim rise As Single = objDynamic2.GetMainPoint(0).pnt.Y - objDynamic1.GetMainPoint(0).pnt.Y
+
+            Dim smallDis As Single = objDynamic2.GetMainPoint(0).sngRadius + objDynamic1.GetMainPoint(0).sngRadius - FindDistance(objDynamic1.GetDrawPoint(0), objDynamic2.GetDrawPoint(0))
+            Dim scaleFactor As Single = smallDis / (objDynamic2.GetMainPoint(0).sngRadius + objDynamic1.GetMainPoint(0).sngRadius)
+
+            'Scale the rise run to the amount to push back and cuts it in half.
+            xMove = run * scaleFactor / 2
+            yMove = rise * scaleFactor / 2
+
+            objDynamic1.SetMainPoint(New Point(objDynamic1.GetDrawPoint(0).X - xMove, objDynamic1.GetDrawPoint(0).Y - yMove))
+            objDynamic2.SetMainPoint(New Point(objDynamic2.GetDrawPoint(0).X + xMove, objDynamic2.GetDrawPoint(0).Y + yMove))
+            Return True
+        End If
+        Return False
+    End Function
+
+    Private Sub CircleCollisionWall(ByRef objWall As OverDropObject, ByRef objDynamic As OverDropObject) 'checks collision and pushes both objects back, used for pushing . Also, Inheritance :D
+        'Finds the rise and run of the two radius of the circles and scales it down to the overlap.
+        If FindDistance(objWall.GetDrawPoint(0), objDynamic.GetDrawPoint(0)) < objDynamic.GetMainPoint(0).sngRadius + objWall.GetMainPoint(0).sngRadius Then
+            Dim xMove, yMove As Single
+
+            Dim run As Single = objDynamic.GetMainPoint(0).pnt.X - objWall.GetMainPoint(0).pnt.X
+            Dim rise As Single = objDynamic.GetMainPoint(0).pnt.Y - objWall.GetMainPoint(0).pnt.Y
+
+            Dim smallDis As Single = objDynamic.GetMainPoint(0).sngRadius + objWall.GetMainPoint(0).sngRadius - FindDistance(objWall.GetDrawPoint(0), objDynamic.GetDrawPoint(0))
+            Dim scaleFactor As Single = smallDis / (objDynamic.GetMainPoint(0).sngRadius + objWall.GetMainPoint(0).sngRadius)
+
+            'Scales the rise run to the amount to push back.
+            xMove = run * scaleFactor
+            yMove = rise * scaleFactor
+
+            objDynamic.SetMainPoint(New Point(objDynamic.GetDrawPoint(0).X + xMove, objDynamic.GetDrawPoint(0).Y + yMove))
+        End If
     End Sub
 
     Private Sub LookAtMouse()
@@ -304,45 +355,6 @@ Public Class Form1
         Next
     End Sub
 
-    Private Sub CircleCollisionDynamic(ByRef objDynamic1 As OverDropObject, ByRef objDynamic2 As OverDropObject) 'checks collision and pushes both objects back, used for pushing . Also, Inheritance :D
-        'Finds the rise and run of the two radius of the circles and scales it down to the overlap.
-        If FindDistance(objDynamic1.GetDrawPoint(0), objDynamic2.GetDrawPoint(0)) < objDynamic2.GetMainPoint(0).sngRadius + objDynamic1.GetMainPoint(0).sngRadius Then
-            Dim xMove, yMove As Single
-
-            Dim run As Single = objDynamic2.GetMainPoint(0).pnt.X - objDynamic1.GetMainPoint(0).pnt.X
-            Dim rise As Single = objDynamic2.GetMainPoint(0).pnt.Y - objDynamic1.GetMainPoint(0).pnt.Y
-
-            Dim smallDis As Single = objDynamic2.GetMainPoint(0).sngRadius + objDynamic1.GetMainPoint(0).sngRadius - FindDistance(objDynamic1.GetDrawPoint(0), objDynamic2.GetDrawPoint(0))
-            Dim scaleFactor As Single = smallDis / (objDynamic2.GetMainPoint(0).sngRadius + objDynamic1.GetMainPoint(0).sngRadius)
-
-            'Scale the rise run to the amount to push back and cuts it in half.
-            xMove = run * scaleFactor / 2
-            yMove = rise * scaleFactor / 2
-
-            objDynamic1.SetMainPoint(New Point(objDynamic1.GetDrawPoint(0).X - xMove, objDynamic1.GetDrawPoint(0).Y - yMove))
-            objDynamic2.SetMainPoint(New Point(objDynamic2.GetDrawPoint(0).X + xMove, objDynamic2.GetDrawPoint(0).Y + yMove))
-        End If
-    End Sub
-
-    Private Sub CircleCollisionWall(ByRef objWall As OverDropObject, ByRef objDynamic As OverDropObject) 'checks collision and pushes both objects back, used for pushing . Also, Inheritance :D
-        'Finds the rise and run of the two radius of the circles and scales it down to the overlap.
-        If FindDistance(objWall.GetDrawPoint(0), objDynamic.GetDrawPoint(0)) < objDynamic.GetMainPoint(0).sngRadius + objWall.GetMainPoint(0).sngRadius Then
-            Dim xMove, yMove As Single
-
-            Dim run As Single = objDynamic.GetMainPoint(0).pnt.X - objWall.GetMainPoint(0).pnt.X
-            Dim rise As Single = objDynamic.GetMainPoint(0).pnt.Y - objWall.GetMainPoint(0).pnt.Y
-
-            Dim smallDis As Single = objDynamic.GetMainPoint(0).sngRadius + objWall.GetMainPoint(0).sngRadius - FindDistance(objWall.GetDrawPoint(0), objDynamic.GetDrawPoint(0))
-            Dim scaleFactor As Single = smallDis / (objDynamic.GetMainPoint(0).sngRadius + objWall.GetMainPoint(0).sngRadius)
-
-            'Scales the rise run to the amount to push back.
-            xMove = run * scaleFactor
-            yMove = rise * scaleFactor
-
-            objDynamic.SetMainPoint(New Point(objDynamic.GetDrawPoint(0).X + xMove, objDynamic.GetDrawPoint(0).Y + yMove))
-        End If
-    End Sub
-
     Public blnWDown As Boolean = False
     Public blnADown As Boolean = False
     Public blnSDown As Boolean = False
@@ -371,9 +383,7 @@ Public Class Form1
         If e.KeyCode = Keys.Space Then
             blnDashOn = True
             shtMeCharSpeed = 16
-        End If
-
-        
+        End If  
 
         'Debug keys
         If e.KeyCode = Keys.E Then
@@ -383,9 +393,9 @@ Public Class Form1
         ElseIf e.KeyCode = Keys.T Then
             lstAI(0).StopAnimation()
         ElseIf e.KeyCode = Keys.O Then
-            sngRotationFactor += 6
+            meObj.ChangeHealth(1)
         ElseIf e.KeyCode = Keys.P Then
-            sngRotationFactor -= 6
+            meObj.ChangeHealth(-1)
         ElseIf e.KeyCode = Keys.R Then
             For Each obj As AI In lstAI 'Colliding Ai with walls
                 obj.SetMainPoint(New Point(obj.GetMainPoint(0).pnt.X - 1, obj.GetMainPoint(0).pnt.Y))

@@ -75,6 +75,7 @@
     <Compile Include="AI.vb" />
     <Compile Include="AnimationObject.vb" />
     <Compile Include="CollisionMap.vb" />
+    <Compile Include="MainCharacter.vb" />
     <Compile Include="Player.vb" />
     <Compile Include="OverDropObject.vb" />
     <Compile Include="Form1.vb">
