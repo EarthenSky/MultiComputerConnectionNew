@@ -33,30 +33,30 @@ Public Class Form1
     Public Const chrSendFrom As Char = Chr(5) 'person from
     Public Const chrMakeNum As Char = Chr(6) 'makes a num value
 
-    Private strCurrentFileDirectory As String = Directory.GetCurrentDirectory.Remove(Directory.GetCurrentDirectory.IndexOf("\bin\Debug"), 10) + "\"
-    Private imgGoodSpriteSheet As Image
-    Private imgEnemySpriteSheet As Image
-    Public imgCircle As Image
-    Private imgHpGood As Image
-    Public imgHpBad As Image
+
 
     Private listener As New TcpListener(5019)
     Private client As New TcpClient
 
-    Public lstComputers As New List(Of String)
-    Public meObj As MainCharacter
-    Public lstOtherComputerObjects As New List(Of Player)
+    Private strCurrentFileDirectory As String = Directory.GetCurrentDirectory.Remove(Directory.GetCurrentDirectory.IndexOf("\bin\Debug"), 10) + "\"
+    Private imgGoodSpriteSheet As Image
+    Private imgEnemySpriteSheet As Image
+    Private imgCircle As Image
+    Private imgHpGood As Image
+    Private imgHpBad As Image
 
-    Public lstAI As New List(Of AI)
+    Private imgCollisionMap As Image
+    Private imgDrawMap As Image
 
-    Public lstMapCircles As New List(Of OverDropObject)  'Holds the circles that make the map look cool.  Yeah, thats what they're for...
+    Private lstComputers As New List(Of String)
+    Private meObj As MainCharacter
+    Private lstOtherComputerObjects As New List(Of Player)
+    Private lstAI As New List(Of AI)
+    Private lstMapCircles As New List(Of OverDropObject)  'Holds the circles that make the map look cool.  Yeah, thats what they're for...
 
-    Public imgCollisionMap As Image
-    Public imgDrawMap As Image
+    Private mapMain As CollisionMap
 
-    Public mapMain As CollisionMap
-
-    Public stwDebug As New Stopwatch()
+    Private stwDebug As New Stopwatch()
 
     Private Sub Form1_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
         'Attach textures to project
@@ -91,13 +91,14 @@ Public Class Form1
         stwDebug.Start()
     End Sub
 
+    Public Const shtCircleColliderSize = 64
     Private Sub AddCircles()  'There isn't much time left so I did this to fix collsion.
-        lstMapCircles.Add(New OverDropObject(New Point(220, 400), imgCircle, 64))
-        lstMapCircles.Add(New OverDropObject(New Point(620, 300), imgCircle, 64))
-        lstMapCircles.Add(New OverDropObject(New Point(880, 420), imgCircle, 64))
-        lstMapCircles.Add(New OverDropObject(New Point(44, 490), imgCircle, 64))
-        lstMapCircles.Add(New OverDropObject(New Point(780, 660), imgCircle, 64))
-        lstMapCircles.Add(New OverDropObject(New Point(650, 125), imgCircle, 64))
+        lstMapCircles.Add(New OverDropObject(New Point(220, 400), imgCircle, shtCircleColliderSize))
+        lstMapCircles.Add(New OverDropObject(New Point(620, 300), imgCircle, shtCircleColliderSize))
+        lstMapCircles.Add(New OverDropObject(New Point(880, 420), imgCircle, shtCircleColliderSize))
+        lstMapCircles.Add(New OverDropObject(New Point(44, 490), imgCircle, shtCircleColliderSize))
+        lstMapCircles.Add(New OverDropObject(New Point(780, 660), imgCircle, shtCircleColliderSize))
+        lstMapCircles.Add(New OverDropObject(New Point(650, 125), imgCircle, shtCircleColliderSize))
     End Sub
 
     Sub PlayLoopingBackgroundSoundFile()
