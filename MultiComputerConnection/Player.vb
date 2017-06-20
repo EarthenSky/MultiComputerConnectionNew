@@ -12,6 +12,10 @@
 
     Public pntMyMousePos As Point
 
+    Public Sub PushBack(ByVal pntPushBack As Point)
+        'TODO: stuffs
+    End Sub
+
     Public Sub SetKeyPressed(ByVal key As Char)
         If key = "W" Then
             blnWDown = True

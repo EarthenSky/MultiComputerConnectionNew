@@ -242,7 +242,7 @@ Public Class CollisionMap 'Instantiate to make a collider map of lines, call the
         End If
 
         Dim sngBAngle As Single = 1.5708 - sngAAngle
-        Debug.Print(sngBAngle & "=b, " & pnt1.ToString & "=pnt1, " & pnt2.ToString & "=pnt2, " & cbx.pnt.ToString & "=cbx.pnt.")
+        'Debug.Print(sngBAngle & "=b, " & pnt1.ToString & "=pnt1, " & pnt2.ToString & "=pnt2, " & cbx.pnt.ToString & "=cbx.pnt.")
         Dim sngNSide As Single = Math.Cos(sngBAngle) * FindDistance(cbx.pnt, pnt2)
 
         Dim snglLength As Single = Math.Abs(cbx.sngRadius - sngNSide)
