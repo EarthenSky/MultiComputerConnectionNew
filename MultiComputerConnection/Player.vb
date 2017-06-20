@@ -1,5 +1,5 @@
 ﻿Public Class Player
-    Inherits OverDropObject  'TODO: Check Inheritance works?
+    Inherits OverDropObject  'TODO: make animation
 
     Sub New(ByVal pnt As Point, ByVal img As Image, ByVal shtRadius As Short)
         MyBase.New(pnt, img, shtRadius)
