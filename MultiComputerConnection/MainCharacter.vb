@@ -4,6 +4,7 @@
     Private Const shtImageSize As Short = 64
     Private Const shtHealthOffset As Short = 1
     Private Const shtMaxHealth As Short = 3
+    Private Const shtSwordDistanceForward As Short = 16
     Public shtHealth As Short = shtMaxHealth
 
     Public WithEvents tmrPush As New Timer()
@@ -11,6 +12,29 @@
     Sub New(ByVal pnt As Point, ByVal img As Image, ByVal radius As Short, ByVal shtAnimationInterval As Short)
         MyBase.New(pnt, img, radius, shtAnimationInterval)
     End Sub
+
+    Public Sub SetSecondPointRotation(ByVal shtRotation As Double)
+        Dim pntTemp As Point = GetRotatedPoint(New Point(lstPointPosition(0).pnt.X + shtSwordDistanceForward + 32, lstPointPosition(0).pnt.Y + 32), New Point(lstPointPosition(0).pnt.X + 32, lstPointPosition(0).pnt.Y + 32), shtRotation)
+
+        Debug.Print("pntrot, " & pntTemp.ToString())
+        Debug.Print("pntstart, " & lstPointPosition(0).pnt.ToString())
+        lstPointPosition(1) = New CircleBox(New Point(pntTemp.X - 32, pntTemp.Y - 32), lstPointPosition(1).sngRadius)
+    End Sub
+
+    'Start Converted Internet
+    Private Function GetRotatedPoint(ByVal pnt As Point, ByVal pntRotation As Point, ByVal shtRotationAngle As Double) As Point 'Gets a point rotated around another point.
+        Dim x1 As Double = pnt.X - pntRotation.X
+        Dim y1 As Double = pnt.Y - pntRotation.Y
+
+        Dim x2 As Double = x1 * Math.Cos(shtRotationAngle) - y1 * Math.Sin(shtRotationAngle)
+        Dim y2 As Double = x1 * Math.Sin(shtRotationAngle) + y1 * Math.Cos(shtRotationAngle)
+
+        Dim x3 As Double = x2 + pntRotation.X
+        Dim y3 As Double = y2 + pntRotation.Y
+
+        Return New Point(x3, y3)
+    End Function
+    'End Converted Internet
 
     Public Sub DrawHealth(ByVal e As PaintEventArgs, ByVal imgGoodHealth As Image, ByVal imgBadHealth As Image)
         Dim rectTempDrawPoint As Rectangle = New Rectangle(shtHealthOffset * 4, shtHealthOffset * 4, shtImageSize, shtImageSize)
@@ -34,11 +58,12 @@
     Public Sub HitAI(ByVal pntPushBack As Point) 'You hit the ai with body
         If shtCurrentLoops = 0 Then
             ChangeHealth(-1)
-            tmrPush.Interval = 5
-            tmrPush.Enabled = True
-
-            Me.pntPushBack = pntPushBack
         End If
+
+        tmrPush.Interval = 5
+        tmrPush.Enabled = True
+
+        Me.pntPushBack = pntPushBack
     End Sub
 
     Private Const shtLoops As Short = 2

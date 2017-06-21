@@ -22,7 +22,8 @@ Public Class Form1
     'Gabe Stang
     '
     'Connect 3 computers together
-    'Can connect multiple computers (3) together and runs a lan Game
+    'Can connect multiple computers (3) together and runs a LAN game.  You move by pressing w and s to move to and from the mouse, left click to attack.
+    'To Note: I focused on getting everything working instead of making the code look super nice, sorry ^-^. 
 
     Public Const chrStartProcessingText As Char = Chr(0)
     Public Const chrAddComToConnectListEnd As Char = Chr(1)
@@ -32,8 +33,6 @@ Public Class Form1
     Public Const chrKeyUnPress As Char = Chr(7) 'send key released
     Public Const chrSendFrom As Char = Chr(5) 'person from
     Public Const chrMakeNum As Char = Chr(6) 'makes a num value
-
-
 
     Private listener As New TcpListener(5019)
     Private client As New TcpClient
@@ -70,7 +69,7 @@ Public Class Form1
 
         'create the character and its attack circle.
         meObj = New MainCharacter(New Point(700, 700), imgGoodSpriteSheet, 16, 100)
-        meObj.lstPointPosition.Add(New CircleBox(New Point(32, 32), 32))
+        meObj.lstPointPosition.Add(New CircleBox(New Point(32, 32), 16))
 
         'create the map
         mapMain = New CollisionMap(imgDrawMap, imgCollisionMap)
@@ -103,7 +102,7 @@ Public Class Form1
     End Sub
 
     Sub PlayLoopingBackgroundSoundFile()
-        My.Computer.Audio.Play(strCurrentFileDirectory & "126(3 - Chaosotacitc Skies).wav", AudioPlayMode.BackgroundLoop)
+        'My.Computer.Audio.Play(strCurrentFileDirectory & "126(3 - Chaosotacitc Skies).wav", AudioPlayMode.BackgroundLoop)  'I make awesome music, yeah?
     End Sub
 
     Public sngRotationFactor As Single
@@ -130,6 +129,8 @@ Public Class Form1
 
         meObj.DrawHealth(e, imgHpGood, imgHpBad)
 
+        e.Graphics.DrawImage(imgEnemySpriteSheet, New Rectangle(meObj.GetDrawPoint(1).X, meObj.GetDrawPoint(1).Y, 32, 32))
+
         'Rotates the Character.
         Dim bmpTexture As New Bitmap(imgCircle)
         Dim mtxRotate As New Drawing2D.Matrix(1, 0, 0, 1, 1, 0)
@@ -150,7 +151,7 @@ Public Class Form1
     Private shtMeCharSpeed As Short = 8
     Private Sub tmrGameUpdate_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles tmrGameUpdate.Tick
         stwDebug.Stop()
-        Me.Text = "Last tick, ms : " & Math.Round(stwDebug.ElapsedMilliseconds / 5).ToString
+        Me.Text = "Last tick, ms : " & Math.Round(stwDebug.ElapsedMilliseconds / 5).ToString  'This is debug for checking if lag.
         stwDebug.Restart()
 
         LookAtMouse()
@@ -162,6 +163,11 @@ Public Class Form1
                 blnSwordOut = False
             End If
         End If
+
+        If blnSwordOut = True Then 'If sword is attacking set rot and pos of sword.
+            meObj.SetSecondPointRotation((sngRotationFactor - 90) / 57.2958)
+        End If
+
 
         MovementStuff()
 
@@ -253,36 +259,35 @@ Public Class Form1
     End Sub
 
     Public Sub CollisionStuff()
-        'Check other computer for collision with walls
+        'Other Coms & Walls
         For index As Short = 0 To lstOtherComputerObjects.Count - 1
             Dim pntTemp As Point = mapMain.CheckCollision(lstOtherComputerObjects(index).GetMainPoint(0), lstOtherComputerObjects(index).pntLastPos)
             lstOtherComputerObjects(index).SetMainPoint(New Point(lstOtherComputerObjects(index).GetMainPoint(0).pnt.X + pntTemp.X, lstOtherComputerObjects(index).GetMainPoint(0).pnt.Y + pntTemp.Y))
-            'mapMain.CheckCollision(lstOtherComputerObjects(index).GetMainPoint(0), lstOtherComputerObjects(index).pntLastPos)
         Next
 
-        'Check main character for collision with the walls
+        'My Com & Walls
         Dim pntTemp2 As Point = mapMain.CheckCollision(meObj.GetMainPoint(0), meObj.pntLastPos)
         meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X + pntTemp2.X, meObj.GetMainPoint(0).pnt.Y + pntTemp2.Y))
-        'mapMain.CheckCollision(meObj.GetMainPoint(0), meObj.pntLastPos)
 
-        'MeObj collision with the other computer objects
+        'My Com & Other Coms
         If lstOtherComputerObjects.Count > 0 Then
             CircleCollisionDynamic(lstOtherComputerObjects(0), meObj)  'TODO: test this
         End If
 
-        'Other computers and the circle wall things
+        'Other Coms & Circle Walls
         For index As Short = 0 To lstOtherComputerObjects.Count - 1
             For Each obj As OverDropObject In lstMapCircles
                 CircleCollisionWall(obj, lstOtherComputerObjects(index))
             Next
         Next
 
-        'Me and all of the circle wall things
+        'My Com & Circle Walls
         For Each obj As OverDropObject In lstMapCircles
             CircleCollisionWall(obj, meObj)
         Next
 
-        For Each obj As AI In lstAI 'Colliding Ai with player
+        'My Com & AIs
+        For Each obj As AI In lstAI
             Dim pntPush As Point = CircleCollisionDynamic(obj, meObj)
             If pntPush <> New Point(0, 0) Then
                 If obj.blnIsDead = False Then
@@ -292,27 +297,21 @@ Public Class Form1
             End If
         Next
 
-        For index As Short = 0 To lstOtherComputerObjects.Count - 1 'Colliding other pc with player
-            Dim pntPush As Point = CircleCollisionDynamic(lstOtherComputerObjects(index), meObj)
-            If pntPush <> New Point(0, 0) Then
-                meObj.HitAI(pntPush)
-                lstOtherComputerObjects(index).PushBack(pntPush)
-            End If
-        Next
-
-        For Each obj As AI In lstAI 'Colliding Ai with walls
+        'Walls & AIs
+        For Each obj As AI In lstAI
             Dim pntTemp As Point = mapMain.CheckCollision(obj.GetMainPoint(0), obj.pntLastPos)
             obj.SetMainPoint(New Point(obj.GetMainPoint(0).pnt.X + pntTemp.X, obj.GetMainPoint(0).pnt.Y + pntTemp.Y))
         Next
 
-        'circles and ai
+        'Circle Walls & AIs
         For Each objCircle As OverDropObject In lstMapCircles
             For Each objAI As AI In lstAI
                 CircleCollisionWall(objCircle, objAI)
             Next
         Next
 
-        If blnSwordOut = True Then 'Checks sword collision with ai
+        'Sword & AIs
+        If blnSwordOut = True Then
             For Each obj As AI In lstAI
                 If obj.blnIsDead = False Then
                     If CircleCollisionDetect(obj, meObj) = True Then
@@ -365,7 +364,8 @@ Public Class Form1
     End Sub
 
     Private Function CircleCollisionDetect(ByRef objDynamic1 As OverDropObject, ByRef objDynamicSword As OverDropObject) As Boolean 'only checks collision detection and gives a true / false answer
-        If FindDistance(objDynamic1.GetDrawPoint(0), objDynamicSword.GetDrawPoint(0)) < objDynamicSword.GetMainPoint(1).sngRadius + objDynamic1.GetMainPoint(0).sngRadius Then
+        Debug.Print("If " & "FindDistance( " & objDynamic1.GetDrawPoint(0).ToString() & "," & objDynamicSword.GetMainPoint(1).pnt.ToString & ")" & "<" & objDynamicSword.GetMainPoint(1).sngRadius & "+" & objDynamic1.GetMainPoint(0).sngRadius & "Then")
+        If FindDistance(objDynamic1.GetDrawPoint(0), objDynamicSword.GetMainPoint(1).pnt) < objDynamicSword.GetMainPoint(1).sngRadius + objDynamic1.GetMainPoint(0).sngRadius Then
             Return True
         End If
         Return False
