@@ -332,10 +332,10 @@ Public Class CollisionMap 'Instantiate to make a collider map of lines, call the
     End Function
     'End Converted Internet Code
 
-    Dim shtDrawMapScale As Short = 8
+    Dim shtDrawMapScale As Short = 1
     Public pntMapPos As Point
     Public Sub Draw(ByVal e As PaintEventArgs)  'Call this to draw the map to the screen
         'magic numbers are some weird offset.
-        e.Graphics.DrawImage(imgDrawMap, New Rectangle((Form1.pbxPlayArea.Location().X * 2.5) + pntMapPos.X, (Form1.pbxPlayArea.Location().Y * 2.3) + pntMapPos.Y, imgDrawMap.Width * shtDrawMapScale, imgDrawMap.Height * shtDrawMapScale))
+        e.Graphics.DrawImage(imgDrawMap, New Rectangle((Form1.pbxPlayArea.Location().X * 2.5) + pntMapPos.X, (Form1.pbxPlayArea.Location().Y * 2.5) + pntMapPos.Y, imgDrawMap.Width * shtDrawMapScale, imgDrawMap.Height * shtDrawMapScale))
     End Sub
 End Class

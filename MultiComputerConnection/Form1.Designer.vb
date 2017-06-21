@@ -127,7 +127,7 @@ Partial Class Form1
         'tmrGameUpdate
         '
         Me.tmrGameUpdate.Enabled = True
-        Me.tmrGameUpdate.Interval = 4
+        Me.tmrGameUpdate.Interval = 8
         '
         'Form1
         '

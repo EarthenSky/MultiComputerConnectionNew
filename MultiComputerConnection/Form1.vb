@@ -24,6 +24,13 @@ Public Class Form1
     'Connect 3 computers together
     'Can connect multiple computers (3) together and runs a LAN game.  You move by pressing w and s to move to and from the mouse, left click to attack.
     'To Note: I focused on getting everything working instead of making the code look super nice, sorry ^-^. 
+    'MAIN STUFF TODO:
+    '- MAKE AI
+    ':D - ADD A FEW MORE ENEMIES
+    ':D - FIX LAG PROBLEM (Nevermind, false alarm)
+    '- 0.1S INVULNERABILITY AFTER GETTING HIT
+    '- MAKE SURE LAN WORKS
+    ':D - MORE SMALL STUFF
 
     Public Const chrStartProcessingText As Char = Chr(0)
     Public Const chrAddComToConnectListEnd As Char = Chr(1)
@@ -61,14 +68,14 @@ Public Class Form1
         'Attach textures to project
         imgGoodSpriteSheet = Image.FromFile(strCurrentFileDirectory & "MainChar2_SpriteSheet.png")
         imgEnemySpriteSheet = Image.FromFile(strCurrentFileDirectory & "BugOne_MiniEnemy_SpriteSheet.png")
-        imgDrawMap = Image.FromFile(strCurrentFileDirectory & "ActualMapDraw.png")
+        imgDrawMap = Image.FromFile(strCurrentFileDirectory & "ActualMapDraw2.png")
         imgCollisionMap = Image.FromFile(strCurrentFileDirectory & "ActualMapMath.png")
         imgCircle = Image.FromFile(strCurrentFileDirectory & "Circle.png")
         imgHpGood = Image.FromFile(strCurrentFileDirectory & "HealthGood.png")
         imgHpBad = Image.FromFile(strCurrentFileDirectory & "HealthBad.png")
 
         'create the character and its attack circle.
-        meObj = New MainCharacter(New Point(700, 700), imgGoodSpriteSheet, 16, 100)
+        meObj = New MainCharacter(New Point(700, 700), imgGoodSpriteSheet, 12, 100)
         meObj.lstPointPosition.Add(New CircleBox(New Point(32, 32), 16))
 
         'create the map
@@ -76,6 +83,10 @@ Public Class Form1
 
         'create the AI's
         lstAI.Add(New AI(New Point(780, 350), imgEnemySpriteSheet, 22, 100))
+        lstAI.Add(New AI(New Point(353 - 32, 189 - 32), imgEnemySpriteSheet, 22, 100))
+        lstAI.Add(New AI(New Point(425 - 32, 255 - 32), imgEnemySpriteSheet, 22, 100))
+        lstAI.Add(New AI(New Point(185 - 32, 517 - 32), imgEnemySpriteSheet, 22, 100))
+        lstAI.Add(New AI(New Point(191 - 32, 631 - 32), imgEnemySpriteSheet, 22, 100))
 
         AddCircles()
 
@@ -128,8 +139,6 @@ Public Class Form1
         Next
 
         meObj.DrawHealth(e, imgHpGood, imgHpBad)
-
-        e.Graphics.DrawImage(imgEnemySpriteSheet, New Rectangle(meObj.GetDrawPoint(1).X, meObj.GetDrawPoint(1).Y, 32, 32))
 
         'Rotates the Character.
         Dim bmpTexture As New Bitmap(imgCircle)
@@ -397,7 +406,7 @@ Public Class Form1
     Public pntMouse As Point
     Private Sub Form1_MouseMove(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles pbxPlayArea.MouseMove
         pntMouse = New Point(e.X, e.Y)
-        'Debug.Print("num is, " & pntMouse.ToString())
+        Debug.Print("num is, " & pntMouse.ToString())
     End Sub
 
     Public blnSwordOut As Boolean
