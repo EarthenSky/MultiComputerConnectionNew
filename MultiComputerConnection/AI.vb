@@ -3,21 +3,19 @@
 
     Public shtHealth As Short = 1
     Public blnIsDead As Boolean = False
-
     Public WithEvents tmrPush As New Timer()
 
     Sub New(ByVal pnt As Point, ByVal img As Image, ByVal radius As Short, ByVal shtAnimationInterval As Short)
         MyBase.New(pnt, img, radius, shtAnimationInterval)
     End Sub
 
-    Public Sub AIMove()
-
+    Public Sub AIMove() 'TODO: AI code, this is Currently Debug
+        lstPointPosition(0) = New CircleBox(New Point(lstPointPosition(0).pnt.X + 1, lstPointPosition(0).pnt.Y), lstPointPosition(0).sngRadius)
     End Sub
 
-    Public Sub HitPlayerSword(ByVal pntPushBack As Point)
+    Public Sub HitPlayerSword()
         If shtHealth >= 0 Then
             ChangeHealth(-1)
-            PushBack(New Point(-pntPushBack.X, -pntPushBack.Y)) 'Negitave
         End If
     End Sub
 

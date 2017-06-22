@@ -46,7 +46,7 @@ Public Class CollisionMap 'Instantiate to make a collider map of lines, call the
     Private Sub LoadMap(ByVal colMap As Image)
         Dim bmpCollision As New Bitmap(colMap)
 
-        'Im not really using the green blue things, depricated. (spelling?)
+        'Im not really using the green blue things but the code relies on parts of it so i'm going to leave it.
         Dim shtLastPoint As Short = 0
 
         'Check for Green
@@ -64,7 +64,6 @@ Public Class CollisionMap 'Instantiate to make a collider map of lines, call the
             If bmpCollision.GetPixel(0, index).B > 0 OrElse index = colMap.Height - 1 Then
                 arySectionsY.Add(shtLastPoint)
                 shtLastPoint = index
-
             End If
         Next
 

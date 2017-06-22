@@ -22,15 +22,15 @@ Public Class Form1
     'Gabe Stang
     '
     'Connect 3 computers together
-    'Can connect multiple computers (3) together and runs a LAN game.  You move by pressing w and s to move to and from the mouse, left click to attack.
+    'Can connect multiple computers (3) together and runs a LAN game.  You move by pressing W or S to move to and from the mouse, left click to attack.  You have 3 hp (top left)
     'To Note: I focused on getting everything working instead of making the code look super nice, sorry ^-^. 
     'MAIN STUFF TODO:
     '- MAKE AI
     ':D - ADD A FEW MORE ENEMIES
     ':D - FIX LAG PROBLEM (Nevermind, false alarm)
-    '- 0.1S INVULNERABILITY AFTER GETTING HIT
+    ':D - 0.1S INVULNERABILITY AFTER GETTING HIT
     '- MAKE SURE LAN WORKS
-    ':D - MORE SMALL STUFF
+    '- MORE SMALL STUFF
 
     Public Const chrStartProcessingText As Char = Chr(0)
     Public Const chrAddComToConnectListEnd As Char = Chr(1)
@@ -113,7 +113,7 @@ Public Class Form1
     End Sub
 
     Sub PlayLoopingBackgroundSoundFile()
-        'My.Computer.Audio.Play(strCurrentFileDirectory & "126(3 - Chaosotacitc Skies).wav", AudioPlayMode.BackgroundLoop)  'I make awesome music, yeah?
+        My.Computer.Audio.Play(strCurrentFileDirectory & "126(3 - Chaosotacitc Skies).wav", AudioPlayMode.BackgroundLoop)  'I make awesome music, yeah?
     End Sub
 
     Public sngRotationFactor As Single
@@ -177,6 +177,9 @@ Public Class Form1
             meObj.SetSecondPointRotation((sngRotationFactor - 90) / 57.2958)
         End If
 
+        For Each ai As AI In lstAI
+            ai.AIMove()
+        Next
 
         MovementStuff()
 
@@ -301,6 +304,7 @@ Public Class Form1
             If pntPush <> New Point(0, 0) Then
                 If obj.blnIsDead = False Then
                     meObj.HitAI(pntPush)
+                    meObj.InvulnerablityActivate()
                 End If
                 obj.PushBack(pntPush)
             End If
@@ -324,7 +328,8 @@ Public Class Form1
             For Each obj As AI In lstAI
                 If obj.blnIsDead = False Then
                     If CircleCollisionDetect(obj, meObj) = True Then
-                        obj.HitPlayerSword(CircleCollisionNumbers(obj, meObj))
+                        obj.HitPlayerSword()
+                        obj.PushBack(CircleCollisionNumbers(obj, meObj))
                     End If
                 End If
             Next

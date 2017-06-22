@@ -8,9 +8,14 @@
     Public shtHealth As Short = shtMaxHealth
 
     Public WithEvents tmrPush As New Timer()
+    Public WithEvents tmrInvulnerability As New Timer()
+
+    Public blnInvulnerable As Boolean = False
 
     Sub New(ByVal pnt As Point, ByVal img As Image, ByVal radius As Short, ByVal shtAnimationInterval As Short)
         MyBase.New(pnt, img, radius, shtAnimationInterval)
+        tmrInvulnerability.Interval = 100
+        tmrPush.Interval = 5
     End Sub
 
     Public Sub SetSecondPointRotation(ByVal shtRotation As Double)
@@ -51,18 +56,20 @@
     Public Sub ChangeHealth(ByVal shtChangeNum As Short)
         shtHealth += shtChangeNum
         If shtHealth <= 0 Then
-            Application.Exit() 'Game dies if you die.
+            EndGaem()
         End If
     End Sub
 
+    Public Sub EndGaem()
+        Form1.tmrGameUpdate.Enabled = False
+    End Sub
+
     Public Sub HitAI(ByVal pntPushBack As Point) 'You hit the ai with body
-        If shtCurrentLoops = 0 Then
+        If blnInvulnerable = False Then 'Cannot take damage if invulnerable
             ChangeHealth(-1)
         End If
 
-        tmrPush.Interval = 5
         tmrPush.Enabled = True
-
         Me.pntPushBack = pntPushBack
     End Sub
 
@@ -77,4 +84,14 @@
             tmrPush.Enabled = False
         End If
     End Sub 'I like how it pushes back more if you are going faster.
+
+    Public Sub InvulnerablityActivate()
+        tmrInvulnerability.Enabled = True
+        blnInvulnerable = True
+    End Sub
+
+    Public Sub tmrInvulnerabilityTick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles tmrInvulnerability.Tick
+        blnInvulnerable = False
+        tmrInvulnerability.Enabled = False
+    End Sub
 End Class
