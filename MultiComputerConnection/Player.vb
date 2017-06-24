@@ -1,8 +1,8 @@
 ﻿Public Class Player
-    Inherits OverDropObject  'TODO: make animation
+    Inherits MainCharacter  'Im just trying to get it to work now, not look nice.
 
-    Sub New(ByVal pnt As Point, ByVal img As Image, ByVal shtRadius As Short)
-        MyBase.New(pnt, img, shtRadius)
+    Sub New(ByVal pnt As Point, ByVal img As Image, ByVal radius As Short, ByVal shtAnimationInterval As Short)
+        MyBase.New(pnt, img, radius, shtAnimationInterval)
     End Sub
 
     Public blnWDown As Boolean = False
@@ -11,10 +11,6 @@
     Public blnDDown As Boolean = False
 
     Public pntMyMousePos As Point
-
-    Public Sub PushBack(ByVal pntPushBack As Point)
-        'TODO: stuffs
-    End Sub
 
     Public Sub SetKeyPressed(ByVal key As Char)
         If key = "W" Then

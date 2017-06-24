@@ -24,11 +24,8 @@ Public Class Form1
     'Connect 3 computers together
     'Can connect multiple computers (3) together and runs a LAN game.  You move by pressing W or S to move to and from the mouse, left click to attack.  You have 3 hp (top left)
     'To Note: I focused on getting everything working instead of making the code look super nice, sorry ^-^. 
-    'MAIN STUFF TODO:
+    'CURRENT MAIN STUFF TODO:
     '- MAKE AI
-    ':D - ADD A FEW MORE ENEMIES
-    ':D - FIX LAG PROBLEM (Nevermind, false alarm)
-    ':D - 0.1S INVULNERABILITY AFTER GETTING HIT
     '- MAKE SURE LAN WORKS
     '- MORE SMALL STUFF
 
@@ -55,7 +52,7 @@ Public Class Form1
     Private imgDrawMap As Image
 
     Private lstComputers As New List(Of String)
-    Private meObj As MainCharacter
+    Public meObj As MainCharacter
     Private lstOtherComputerObjects As New List(Of Player)
     Private lstAI As New List(Of AI)
     Private lstMapCircles As New List(Of OverDropObject)  'Holds the circles that make the map look cool.  Yeah, thats what they're for...
@@ -112,8 +109,8 @@ Public Class Form1
         lstMapCircles.Add(New OverDropObject(New Point(650, 125), imgCircle, shtCircleColliderSize))
     End Sub
 
-    Sub PlayLoopingBackgroundSoundFile()
-        My.Computer.Audio.Play(strCurrentFileDirectory & "126(3 - Chaosotacitc Skies).wav", AudioPlayMode.BackgroundLoop)  'I make awesome music, yeah?
+    Sub PlayLoopingBackgroundSoundFile() 'TODO: Turn this on
+        'My.Computer.Audio.Play(strCurrentFileDirectory & "126(3 - Chaosotacitc Skies).wav", AudioPlayMode.BackgroundLoop)  'I make awesome music, yeah?
     End Sub
 
     Public sngRotationFactor As Single
@@ -271,6 +268,7 @@ Public Class Form1
     End Sub
 
     Public Sub CollisionStuff()
+        'AI don't need to collide with each other.
         'Other Coms & Walls
         For index As Short = 0 To lstOtherComputerObjects.Count - 1
             Dim pntTemp As Point = mapMain.CheckCollision(lstOtherComputerObjects(index).GetMainPoint(0), lstOtherComputerObjects(index).pntLastPos)
@@ -310,6 +308,20 @@ Public Class Form1
             End If
         Next
 
+        'Other Coms & Walls
+        For Each obj As AI In lstAI
+            For index As Short = 0 To lstOtherComputerObjects.Count - 1
+                Dim pntPush As Point = CircleCollisionDynamic(obj, lstOtherComputerObjects(index))
+                If pntPush <> New Point(0, 0) Then
+                    If obj.blnIsDead = False Then
+                        lstOtherComputerObjects(index).HitAI(pntPush)
+                        lstOtherComputerObjects(index).InvulnerablityActivate()
+                    End If
+                    obj.PushBack(pntPush)
+                End If
+            Next
+        Next
+
         'Walls & AIs
         For Each obj As AI In lstAI
             Dim pntTemp As Point = mapMain.CheckCollision(obj.GetMainPoint(0), obj.pntLastPos)
@@ -328,8 +340,8 @@ Public Class Form1
             For Each obj As AI In lstAI
                 If obj.blnIsDead = False Then
                     If CircleCollisionDetect(obj, meObj) = True Then
-                        obj.HitPlayerSword()
                         obj.PushBack(CircleCollisionNumbers(obj, meObj))
+                        obj.HitPlayerSword()
                     End If
                 End If
             Next
@@ -387,19 +399,19 @@ Public Class Form1
 
     Private Function CircleCollisionNumbers(ByRef objDynamic1 As OverDropObject, ByRef objDynamic2 As OverDropObject) As Point 'ok...  This doesn't push back but gives the number
         'Finds the rise and run of the two radius of the circles and scales it down to the overlap.
-            Dim xMove, yMove As Single
+        Dim xMove, yMove As Single
 
-            Dim run As Single = objDynamic2.GetMainPoint(0).pnt.X - objDynamic1.GetMainPoint(0).pnt.X
-            Dim rise As Single = objDynamic2.GetMainPoint(0).pnt.Y - objDynamic1.GetMainPoint(0).pnt.Y
+        Dim run As Single = objDynamic2.GetMainPoint(0).pnt.X - objDynamic1.GetMainPoint(0).pnt.X
+        Dim rise As Single = objDynamic2.GetMainPoint(0).pnt.Y - objDynamic1.GetMainPoint(0).pnt.Y
 
-            Dim smallDis As Single = objDynamic2.GetMainPoint(0).sngRadius + objDynamic1.GetMainPoint(0).sngRadius - FindDistance(objDynamic1.GetDrawPoint(0), objDynamic2.GetDrawPoint(0))
-            Dim scaleFactor As Single = smallDis / (objDynamic2.GetMainPoint(0).sngRadius + objDynamic1.GetMainPoint(0).sngRadius)
+        Dim smallDis As Single = objDynamic2.GetMainPoint(0).sngRadius + objDynamic1.GetMainPoint(0).sngRadius - FindDistance(objDynamic1.GetDrawPoint(0), objDynamic2.GetDrawPoint(0))
+        Dim scaleFactor As Single = smallDis / (objDynamic2.GetMainPoint(0).sngRadius + objDynamic1.GetMainPoint(0).sngRadius)
 
-            'Scale the rise run to the amount to push back and cuts it in half.
-            xMove = run * scaleFactor / 2
-            yMove = rise * scaleFactor / 2
+        'Scale the rise run to the amount to push back and cuts it to make it smaller.
+        xMove = run * scaleFactor / 8
+        yMove = rise * scaleFactor / 8
 
-            Return New Point(xMove, yMove)
+        Return New Point(-xMove, -yMove)
     End Function
 
     Private Sub LookAtMouse()
@@ -799,7 +811,7 @@ Public Class Form1
     End Sub
 
     Private Sub AddComputerToList(ByVal strName As String)
-        lstOtherComputerObjects.Add(New Player(New Point(0, 0), imgGoodSpriteSheet, 32))  'Adds a new character to the screen
+        lstOtherComputerObjects.Add(New Player(New Point(0, 0), imgGoodSpriteSheet, 32, 100))  'Adds a new character to the screen
         lstComputers.Add(strName)
         lbxComputersConnectedTo.Items.Add(strName)
     End Sub

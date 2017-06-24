@@ -14,15 +14,14 @@
 
     Sub New(ByVal pnt As Point, ByVal img As Image, ByVal radius As Short, ByVal shtAnimationInterval As Short)
         MyBase.New(pnt, img, radius, shtAnimationInterval)
-        tmrInvulnerability.Interval = 100
+        tmrInvulnerability.Interval = 150
         tmrPush.Interval = 5
     End Sub
 
     Public Sub SetSecondPointRotation(ByVal shtRotation As Double)
         Dim pntTemp As Point = GetRotatedPoint(New Point(lstPointPosition(0).pnt.X + shtSwordDistanceForward + 32, lstPointPosition(0).pnt.Y + 32), New Point(lstPointPosition(0).pnt.X + 32, lstPointPosition(0).pnt.Y + 32), shtRotation)
-
-        Debug.Print("pntrot, " & pntTemp.ToString())
-        Debug.Print("pntstart, " & lstPointPosition(0).pnt.ToString())
+        'Debug.Print("pntrot, " & pntTemp.ToString())
+        'Debug.Print("pntstart, " & lstPointPosition(0).pnt.ToString())
         lstPointPosition(1) = New CircleBox(New Point(pntTemp.X - 32, pntTemp.Y - 32), lstPointPosition(1).sngRadius)
     End Sub
 
@@ -77,7 +76,7 @@
     Private shtCurrentLoops As Short = 0
     Private pntPushBack As Point
     Public Sub tmrPushTick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles tmrPush.Tick
-        lstPointPosition(0) = New CircleBox(New Point(lstPointPosition(0).pnt.X + pntPushBack.X * 8, lstPointPosition(0).pnt.Y + pntPushBack.Y * 8), lstPointPosition(0).sngRadius)
+        lstPointPosition(0) = New CircleBox(New Point(lstPointPosition(0).pnt.X + pntPushBack.X * 4, lstPointPosition(0).pnt.Y + pntPushBack.Y * 4), lstPointPosition(0).sngRadius)
         shtCurrentLoops += 1
         If shtCurrentLoops >= shtLoops Then
             shtCurrentLoops = 0

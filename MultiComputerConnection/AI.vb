@@ -9,9 +9,28 @@
         MyBase.New(pnt, img, radius, shtAnimationInterval)
     End Sub
 
-    Public Sub AIMove() 'TODO: AI code, this is Currently Debug
-        lstPointPosition(0) = New CircleBox(New Point(lstPointPosition(0).pnt.X + 1, lstPointPosition(0).pnt.Y), lstPointPosition(0).sngRadius)
+    Private pntMoveTo As Point
+    Public Sub AIMove() 'TODO: AI code
+        Dim shtDistance As Short = FindDistance(Form1.meObj.GetDrawPoint(0), lstPointPosition(0).pnt)
+
+        If shtDistance > 700 Then 'Nest movement
+
+        ElseIf shtDistance > 350 Then 'aimless movement
+
+        Else 'targeted movement
+
+        End If
     End Sub
+
+    'Start Converted Internet
+    Function sqr(ByVal x) As Double
+        Return x * x
+    End Function
+
+    Function FindDistance(ByVal pnt1 As Point, ByVal pnt2 As Point) As Single
+        Return Math.Sqrt(sqr(pnt2.X - pnt1.X) + sqr(pnt2.Y - pnt1.Y))
+    End Function
+    'End Converted Internet
 
     Public Sub HitPlayerSword()
         If shtHealth >= 0 Then
@@ -40,7 +59,7 @@
     Private shtCurrentLoops As Short = 0
     Private pntPushBack As Point
     Public Sub tmrPushTick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles tmrPush.Tick
-        lstPointPosition(0) = New CircleBox(New Point(lstPointPosition(0).pnt.X + pntPushBack.X * -8, lstPointPosition(0).pnt.Y + pntPushBack.Y * -8), lstPointPosition(0).sngRadius)
+        lstPointPosition(0) = New CircleBox(New Point(lstPointPosition(0).pnt.X + pntPushBack.X * -4, lstPointPosition(0).pnt.Y + pntPushBack.Y * -4), lstPointPosition(0).sngRadius)
         shtCurrentLoops += 1
         If shtCurrentLoops >= shtLoops Then
             shtCurrentLoops = 0
