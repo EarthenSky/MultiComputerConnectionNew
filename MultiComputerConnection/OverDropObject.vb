@@ -8,8 +8,8 @@
     Public sngRadius As Single
 End Structure
 
-Public Class OverDropObject
-    Public lstPointPosition As New List(Of CircleBox) 'Holds all of the circles.
+Public Class OverDropObject 'The thing that happened with GetMainPoint() and GetDrawPoint() was really weird and also accidental, idk what happened with it.
+    Public lstPointPosition As New List(Of CircleBox) 'Holds all of the circles.  'This is also sort of weird and should have not been a list.
     Public imgMainImage As Image
     Public pntLastPos As Point
 

@@ -203,7 +203,10 @@ Public Class Form1
                 run *= scale2
             End If
 
-            meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X + run, meObj.GetMainPoint(0).pnt.Y + rise))
+            If GeneralPointComparison(New Point(meObj.GetMainPoint(0).pnt.X, meObj.GetMainPoint(0).pnt.Y), pntMouse) = False Then
+                meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X + run, meObj.GetMainPoint(0).pnt.Y + rise))
+            End If
+
             'Debug.Print(Math.Sqrt(sqr(rise) + sqr(rise)) & " is size")
         ElseIf blnSDown = True Then
             Dim rise As Double = pntMouse.Y - meObj.GetMainPoint(0).pnt.Y - 32
@@ -266,6 +269,16 @@ Public Class Form1
             End If
         Next
     End Sub
+
+    Private Function GeneralPointComparison(ByVal pnt1 As Point, ByVal pnt2 As Point) As Boolean  'TODO: WTF IS THIS RIGHT NOW? 
+        Dim shtDiffNum As Short = 100
+        If Math.Round(pnt1.X / shtDiffNum) = Math.Round(pnt2.X / shtDiffNum) And Math.Round(pnt1.Y / shtDiffNum) = Math.Round(pnt2.Y / shtDiffNum) Then
+            Return True
+        Else
+            Debug.Print(Math.Round(pnt1.X / shtDiffNum) & " & " & Math.Round(pnt2.X / shtDiffNum) & " and " & Math.Round(pnt1.Y / shtDiffNum) & " & " & Math.Round(pnt2.Y / shtDiffNum))
+            Return False
+        End If
+    End Function
 
     Public Sub CollisionStuff()
         'AI don't need to collide with each other.
@@ -423,7 +436,7 @@ Public Class Form1
     Public pntMouse As Point
     Private Sub Form1_MouseMove(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles pbxPlayArea.MouseMove
         pntMouse = New Point(e.X, e.Y)
-        Debug.Print("num is, " & pntMouse.ToString())
+        'Debug.Print("num is, " & pntMouse.ToString())
     End Sub
 
     Public blnSwordOut As Boolean
