@@ -20,8 +20,8 @@
             Dim shtDistance As Short = FindDistance(Form1.meObj.GetDrawPoint(0), lstPointPosition(0).pnt)
 
             If shtDistance > 300 Then 'No next movement pos
-                If shtMoveSpeed <> 2 Then
-                    shtMoveSpeed = 2
+                If shtMoveSpeed <> 3 Then
+                    shtMoveSpeed = 3
                 End If
 
                 If GeneralPointComparison(pntMyPos, pntMoveTo) Then 'Point needs to be set
@@ -35,8 +35,8 @@
 
                 'Debug.Print("1" & pntMoveTo.ToString())
             ElseIf shtDistance > 200 Then 'Aimless movement
-                If shtMoveSpeed <> 2 Then
-                    shtMoveSpeed = 2
+                If shtMoveSpeed <> 3 Then
+                    shtMoveSpeed = 3
                 End If
 
                 If GeneralPointComparison(pntMyPos, pntMoveTo) OrElse pntMoveTo = New Point(-1, -1) Then 'Point needs to be set
@@ -52,8 +52,8 @@
 
                 'Debug.Print("2" & pntMoveTo.ToString())
             Else 'targeted movement
-                If shtMoveSpeed <> 4 Then
-                    shtMoveSpeed = 4
+                If shtMoveSpeed <> 6 Then
+                    shtMoveSpeed = 6
                 End If
 
                 pntMoveTo = New Point(Form1.meObj.GetDrawPoint(0).X + 32, Form1.meObj.GetDrawPoint(0).Y + 32) 'Set point (the +32 is for the centre)
@@ -66,8 +66,10 @@
         End If
     End Sub
 
+    Private shtDiffNum As Short = 50
     Private Function GeneralPointComparison(ByVal pnt1 As Point, ByVal pnt2 As Point) As Boolean
-        If Math.Round(pnt1.X / 10) = Math.Round(pnt2.X / 10) And Math.Round(pnt1.Y / 10) = Math.Round(pnt2.Y / 10) Then
+        Debug.Print("01 " & pnt1.X - pnt2.X & " and " & pnt1.Y - pnt2.Y)
+        If Math.Abs(pnt1.X - pnt2.X) < shtDiffNum AndAlso Math.Abs(pnt1.Y - pnt2.Y) < shtDiffNum Then
             Return True
         Else
             Return False

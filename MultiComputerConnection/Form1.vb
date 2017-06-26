@@ -84,6 +84,7 @@ Public Class Form1
         lstAI.Add(New AI(New Point(425 - 32, 255 - 32), imgEnemySpriteSheet, 22, 100))
         lstAI.Add(New AI(New Point(185 - 32, 517 - 32), imgEnemySpriteSheet, 22, 100))
         lstAI.Add(New AI(New Point(191 - 32, 631 - 32), imgEnemySpriteSheet, 22, 100))
+        lstAI.Add(New AI(New Point(145 - 32, 610 - 32), imgEnemySpriteSheet, 22, 100))
 
         AddCircles()
 
@@ -102,11 +103,11 @@ Public Class Form1
     Public Const shtCircleColliderSize = 64
     Private Sub AddCircles()  'There isn't much time left so I did this to fix collsion.
         lstMapCircles.Add(New OverDropObject(New Point(220, 400), imgCircle, shtCircleColliderSize))
-        lstMapCircles.Add(New OverDropObject(New Point(620, 300), imgCircle, shtCircleColliderSize))
+        lstMapCircles.Add(New OverDropObject(New Point(620, 285), imgCircle, shtCircleColliderSize))
         lstMapCircles.Add(New OverDropObject(New Point(880, 420), imgCircle, shtCircleColliderSize))
         lstMapCircles.Add(New OverDropObject(New Point(44, 490), imgCircle, shtCircleColliderSize))
         lstMapCircles.Add(New OverDropObject(New Point(780, 660), imgCircle, shtCircleColliderSize))
-        lstMapCircles.Add(New OverDropObject(New Point(650, 125), imgCircle, shtCircleColliderSize))
+        lstMapCircles.Add(New OverDropObject(New Point(650, 120), imgCircle, shtCircleColliderSize))
     End Sub
 
     Sub PlayLoopingBackgroundSoundFile() 'TODO: Turn this on
@@ -203,7 +204,7 @@ Public Class Form1
                 run *= scale2
             End If
 
-            If GeneralPointComparison(New Point(meObj.GetMainPoint(0).pnt.X, meObj.GetMainPoint(0).pnt.Y), pntMouse) = False Then
+            If GeneralPointComparison(New Point(meObj.GetMainPoint(0).pnt.X + 32, meObj.GetMainPoint(0).pnt.Y + 32), pntMouse) = False Then
                 meObj.SetMainPoint(New Point(meObj.GetMainPoint(0).pnt.X + run, meObj.GetMainPoint(0).pnt.Y + rise))
             End If
 
@@ -270,12 +271,12 @@ Public Class Form1
         Next
     End Sub
 
-    Private Function GeneralPointComparison(ByVal pnt1 As Point, ByVal pnt2 As Point) As Boolean  'TODO: WTF IS THIS RIGHT NOW? 
-        Dim shtDiffNum As Short = 100
-        If Math.Round(pnt1.X / shtDiffNum) = Math.Round(pnt2.X / shtDiffNum) And Math.Round(pnt1.Y / shtDiffNum) = Math.Round(pnt2.Y / shtDiffNum) Then
+    Private shtDiffNum As Short = 8
+    Private Function GeneralPointComparison(ByVal pnt1 As Point, ByVal pnt2 As Point) As Boolean
+        'Debug.Print("01 " & pnt1.X - pnt2.X & " and " & pnt1.Y - pnt2.Y)
+        If Math.Abs(pnt1.X - pnt2.X) < shtDiffNum AndAlso Math.Abs(pnt1.Y - pnt2.Y) < shtDiffNum Then
             Return True
         Else
-            Debug.Print(Math.Round(pnt1.X / shtDiffNum) & " & " & Math.Round(pnt2.X / shtDiffNum) & " and " & Math.Round(pnt1.Y / shtDiffNum) & " & " & Math.Round(pnt2.Y / shtDiffNum))
             Return False
         End If
     End Function
@@ -436,7 +437,7 @@ Public Class Form1
     Public pntMouse As Point
     Private Sub Form1_MouseMove(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles pbxPlayArea.MouseMove
         pntMouse = New Point(e.X, e.Y)
-        'Debug.Print("num is, " & pntMouse.ToString())
+        Debug.Print("num is, " & pntMouse.ToString())
     End Sub
 
     Public blnSwordOut As Boolean
