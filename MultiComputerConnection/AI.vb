@@ -1,11 +1,14 @@
 ﻿Public Class AI
     Inherits AnimationObject
+    'The static animation is bad cause time restraints
 
     Private shtMoveSpeed As Short = 2
 
     Public shtHealth As Short = 1
     Public blnIsDead As Boolean = False
     Public WithEvents tmrPush As New Timer()
+
+    Public shtLookAngle As Short
 
     Sub New(ByVal pnt As Point, ByVal img As Image, ByVal radius As Short, ByVal shtAnimationInterval As Short)
         MyBase.New(pnt, img, radius, shtAnimationInterval)
@@ -20,6 +23,10 @@
             Dim shtDistance As Short = FindDistance(Form1.meObj.GetDrawPoint(0), lstPointPosition(0).pnt)
 
             If shtDistance > 300 Then 'No next movement pos
+                If pntCurrentImgIndexes.X <> 1 Then
+                    PlayAnimation(1)
+                End If
+
                 If shtMoveSpeed <> 3 Then
                     shtMoveSpeed = 3
                 End If
@@ -31,10 +38,19 @@
                     Dim pntMove As Point = GetMoveAmountScaled(pntMoveTo, pntMyPos)
                     lstPointPosition(0) = New CircleBox(New Point(pntMyPos.X + pntMove.X, pntMyPos.Y + pntMove.Y), lstPointPosition(0).sngRadius)
 
+                    If pntCurrentImgIndexes.X <> 0 Then
+                        PlayAnimation(0)
+                    End If
+
                 End If
 
-                'Debug.Print("1" & pntMoveTo.ToString())
+                Debug.Print("1" & pntMoveTo.ToString())
             ElseIf shtDistance > 200 Then 'Aimless movement
+                If pntCurrentImgIndexes.X <> 0 Then
+                    PlayAnimation(0)
+                    Debug.Print("2p")
+                End If
+
                 If shtMoveSpeed <> 3 Then
                     shtMoveSpeed = 3
                 End If
@@ -50,8 +66,12 @@
 
                 End If
 
-                'Debug.Print("2" & pntMoveTo.ToString())
+                Debug.Print("2" & pntMoveTo.ToString())
             Else 'targeted movement
+                If pntCurrentImgIndexes.X <> 0 Then
+                    PlayAnimation(0)
+                End If
+
                 If shtMoveSpeed <> 6 Then
                     shtMoveSpeed = 6
                 End If
@@ -61,14 +81,19 @@
                 Dim pntMove As Point = GetMoveAmountScaled(pntMoveTo, pntMyPos)
                 lstPointPosition(0) = New CircleBox(New Point(pntMyPos.X + pntMove.X, pntMyPos.Y + pntMove.Y), lstPointPosition(0).sngRadius)
 
-                'Debug.Print("3" & pntMoveTo.ToString())
+                Debug.Print("3" & pntMoveTo.ToString())
             End If
         End If
     End Sub
 
+    Public Sub SetLookAngle()
+        Dim angle = Form1.FindAngle(pntMoveTo, New Point(lstPointPosition(0).pnt.X + 32, lstPointPosition(0).pnt.Y + 32), New Point(0, Short.MinValue), New Point(0, Short.MaxValue)) * 57.2958
+        shtLookAngle = angle
+    End Sub
+
     Private shtDiffNum As Short = 50
     Private Function GeneralPointComparison(ByVal pnt1 As Point, ByVal pnt2 As Point) As Boolean
-        Debug.Print("01 " & pnt1.X - pnt2.X & " and " & pnt1.Y - pnt2.Y)
+        'Debug.Print("01 " & pnt1.X - pnt2.X & " and " & pnt1.Y - pnt2.Y)
         If Math.Abs(pnt1.X - pnt2.X) < shtDiffNum AndAlso Math.Abs(pnt1.Y - pnt2.Y) < shtDiffNum Then
             Return True
         Else

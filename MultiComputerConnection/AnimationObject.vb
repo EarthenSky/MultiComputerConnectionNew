@@ -4,7 +4,7 @@
     Public lstAnimations As New List(Of Rectangle())
     Private WithEvents tmrAnimation As Timer
 
-    Public pntCurrentImgIndexes As Point ' Y is animation number, X is animation pane.
+    Public pntCurrentImgIndexes As Point 'X is animation number, Y is animation pane.
 
     Sub New(ByVal pnt As Point, ByVal img As Image, ByVal radius As Short, ByVal shtAnimationInterval As Short)
         MyBase.New(pnt, img, radius)
@@ -40,7 +40,7 @@
         'tmrAnimation.Enabled = False
     End Sub
 
-    Private Sub tmrGameUpdate_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles tmrAnimation.Tick ' Loops current animation
+    Private Sub tmrGameUpdate_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles tmrAnimation.Tick 'Loops current animation
         If pntCurrentImgIndexes.Y >= 3 Then
             pntCurrentImgIndexes = New Point(pntCurrentImgIndexes.X, 0)
         Else

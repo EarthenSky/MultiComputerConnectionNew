@@ -14,7 +14,7 @@
 
     Sub New(ByVal pnt As Point, ByVal img As Image, ByVal radius As Short, ByVal shtAnimationInterval As Short)
         MyBase.New(pnt, img, radius, shtAnimationInterval)
-        tmrInvulnerability.Interval = 150
+        tmrInvulnerability.Interval = 250
         tmrPush.Interval = 5
     End Sub
 

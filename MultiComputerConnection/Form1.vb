@@ -80,15 +80,18 @@ Public Class Form1
 
         'create the AI's
         lstAI.Add(New AI(New Point(780, 350), imgEnemySpriteSheet, 22, 100))
-        lstAI.Add(New AI(New Point(353 - 32, 189 - 32), imgEnemySpriteSheet, 22, 100))
-        lstAI.Add(New AI(New Point(425 - 32, 255 - 32), imgEnemySpriteSheet, 22, 100))
-        lstAI.Add(New AI(New Point(185 - 32, 517 - 32), imgEnemySpriteSheet, 22, 100))
-        lstAI.Add(New AI(New Point(191 - 32, 631 - 32), imgEnemySpriteSheet, 22, 100))
-        lstAI.Add(New AI(New Point(145 - 32, 610 - 32), imgEnemySpriteSheet, 22, 100))
+        'lstAI.Add(New AI(New Point(353 - 32, 189 - 32), imgEnemySpriteSheet, 22, 100))
+        'lstAI.Add(New AI(New Point(425 - 32, 255 - 32), imgEnemySpriteSheet, 22, 100))
+        'lstAI.Add(New AI(New Point(185 - 32, 517 - 32), imgEnemySpriteSheet, 22, 100))
+        'lstAI.Add(New AI(New Point(191 - 32, 631 - 32), imgEnemySpriteSheet, 22, 100))
+        'lstAI.Add(New AI(New Point(145 - 32, 610 - 32), imgEnemySpriteSheet, 22, 100))
 
         AddCircles()
 
         PlayLoopingBackgroundSoundFile() 'Start awesome music
+
+        'Set controls
+        Me.tbxMessageToSend.Text = "Controls: " & vbNewLine & "W - Moves player towards mouse." & vbNewLine & "S - Moves player away from mouse." & vbNewLine & "LeftClick - Player attacks."
 
         Me.KeyPreview = True
 
@@ -97,17 +100,17 @@ Public Class Form1
         ListenerThread.Start()
 
         stwDebug.Start()
-
     End Sub
 
     Public Const shtCircleColliderSize = 64
     Private Sub AddCircles()  'There isn't much time left so I did this to fix collsion.
         lstMapCircles.Add(New OverDropObject(New Point(220, 400), imgCircle, shtCircleColliderSize))
-        lstMapCircles.Add(New OverDropObject(New Point(620, 285), imgCircle, shtCircleColliderSize))
+        lstMapCircles.Add(New OverDropObject(New Point(615, 285), imgCircle, shtCircleColliderSize))
         lstMapCircles.Add(New OverDropObject(New Point(880, 420), imgCircle, shtCircleColliderSize))
         lstMapCircles.Add(New OverDropObject(New Point(44, 490), imgCircle, shtCircleColliderSize))
         lstMapCircles.Add(New OverDropObject(New Point(780, 660), imgCircle, shtCircleColliderSize))
         lstMapCircles.Add(New OverDropObject(New Point(650, 120), imgCircle, shtCircleColliderSize))
+        lstMapCircles.Add(New OverDropObject(New Point(720, 500), imgCircle, shtCircleColliderSize))
     End Sub
 
     Sub PlayLoopingBackgroundSoundFile() 'TODO: Turn this on
@@ -116,7 +119,11 @@ Public Class Form1
 
     Public sngRotationFactor As Single
     Private Sub PaintMain(ByVal o As Object, ByVal e As PaintEventArgs) Handles pbxPlayArea.Paint
+        Dim bmpTexture As New Bitmap(imgCircle)
+        Dim mtxRotate As New Drawing2D.Matrix(1, 0, 0, 1, 1, 0)
+
         mapMain.Draw(e)  'Draw at the bottom.
+
         For Each obj As OverDropObject In lstMapCircles 'Draws circle things  'Draw at bottom too.
             e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.GetDrawPoint(0).X - obj.GetMainPoint(0).sngRadius / 2, obj.GetDrawPoint(0).Y - obj.GetMainPoint(0).sngRadius / 2, obj.GetMainPoint(0).sngRadius * 2, obj.GetMainPoint(0).sngRadius * 2))
         Next
@@ -126,7 +133,17 @@ Public Class Form1
             'e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.GetDrawPoint().X, obj.GetDrawPoint().Y, obj.imgMainImage.Width, obj.imgMainImage.Height / 2))
         Next
 
-        For Each obj As AnimationObject In lstAI 'Draws AI
+        meObj.DrawHealth(e, imgHpGood, imgHpBad)
+
+        For Each obj As AI In lstAI 'Draws AI
+            obj.SetLookAngle()
+
+            'Rotates the AI.
+            'bmpTexture = New Bitmap(obj.imgMainImage)
+            mtxRotate = New Drawing2D.Matrix(1, 0, 0, 1, 1, 0)
+            mtxRotate.RotateAt(obj.shtLookAngle, New PointF(obj.GetMainPoint(0).pnt.X + 32, obj.GetMainPoint(0).pnt.Y + 32), Drawing2D.MatrixOrder.Append)
+            e.Graphics.Transform = mtxRotate
+
             If obj.pntCurrentImgIndexes.X <> -1 Then
                 e.Graphics.DrawImage(obj.imgMainImage, New Rectangle(obj.GetMainPoint(0).pnt.X, obj.GetMainPoint(0).pnt.Y, 64, 64),
                                      obj.lstAnimations(obj.pntCurrentImgIndexes.X)(obj.pntCurrentImgIndexes.Y), System.Drawing.GraphicsUnit.Pixel)
@@ -136,11 +153,9 @@ Public Class Form1
             End If
         Next
 
-        meObj.DrawHealth(e, imgHpGood, imgHpBad)
-
         'Rotates the Character.
-        Dim bmpTexture As New Bitmap(imgCircle)
-        Dim mtxRotate As New Drawing2D.Matrix(1, 0, 0, 1, 1, 0)
+        'bmpTexture = New Bitmap(imgCircle)
+        mtxRotate = New Drawing2D.Matrix(1, 0, 0, 1, 1, 0)
         mtxRotate.RotateAt(sngRotationFactor, New PointF(meObj.GetMainPoint(0).pnt.X + 32, meObj.GetMainPoint(0).pnt.Y + 32), Drawing2D.MatrixOrder.Append)
         e.Graphics.Transform = mtxRotate
 
@@ -435,7 +450,7 @@ Public Class Form1
     End Sub
 
     Public pntMouse As Point
-    Private Sub Form1_MouseMove(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles pbxPlayArea.MouseMove
+    Private Sub Form1_MouseMove(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles MyBase.MouseMove, pbxPlayArea.MouseMove
         pntMouse = New Point(e.X, e.Y)
         Debug.Print("num is, " & pntMouse.ToString())
     End Sub
