@@ -61,6 +61,7 @@ Public Class Form1
 
     Private stwDebug As New Stopwatch()
 
+    'Start Init
     Private Sub Form1_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
         'Attach textures to project
         imgGoodSpriteSheet = Image.FromFile(strCurrentFileDirectory & "MainChar2_SpriteSheet.png")
@@ -80,11 +81,11 @@ Public Class Form1
 
         'create the AI's
         lstAI.Add(New AI(New Point(780, 350), imgEnemySpriteSheet, 22, 100))
-        'lstAI.Add(New AI(New Point(353 - 32, 189 - 32), imgEnemySpriteSheet, 22, 100))
-        'lstAI.Add(New AI(New Point(425 - 32, 255 - 32), imgEnemySpriteSheet, 22, 100))
-        'lstAI.Add(New AI(New Point(185 - 32, 517 - 32), imgEnemySpriteSheet, 22, 100))
-        'lstAI.Add(New AI(New Point(191 - 32, 631 - 32), imgEnemySpriteSheet, 22, 100))
-        'lstAI.Add(New AI(New Point(145 - 32, 610 - 32), imgEnemySpriteSheet, 22, 100))
+        lstAI.Add(New AI(New Point(353 - 32, 189 - 32), imgEnemySpriteSheet, 22, 100))
+        lstAI.Add(New AI(New Point(425 - 32, 255 - 32), imgEnemySpriteSheet, 22, 100))
+        lstAI.Add(New AI(New Point(185 - 32, 517 - 32), imgEnemySpriteSheet, 22, 100))
+        lstAI.Add(New AI(New Point(191 - 32, 631 - 32), imgEnemySpriteSheet, 22, 100))
+        lstAI.Add(New AI(New Point(135 - 32, 610 - 32), imgEnemySpriteSheet, 22, 100))
 
         AddCircles()
 
@@ -113,10 +114,12 @@ Public Class Form1
         lstMapCircles.Add(New OverDropObject(New Point(720, 500), imgCircle, shtCircleColliderSize))
     End Sub
 
-    Sub PlayLoopingBackgroundSoundFile() 'TODO: Turn this on
+    Private Sub PlayLoopingBackgroundSoundFile() 'TODO: Turn this on
         'My.Computer.Audio.Play(strCurrentFileDirectory & "126(3 - Chaosotacitc Skies).wav", AudioPlayMode.BackgroundLoop)  'I make awesome music, yeah?
     End Sub
+    'End Init
 
+    'Start Update (Loop)
     Public sngRotationFactor As Single
     Private Sub PaintMain(ByVal o As Object, ByVal e As PaintEventArgs) Handles pbxPlayArea.Paint
         Dim bmpTexture As New Bitmap(imgCircle)
@@ -448,7 +451,9 @@ Public Class Form1
                               New Point(0, Short.MinValue), New Point(0, Short.MaxValue)) * 57.2958
         sngRotationFactor = angle
     End Sub
+    'End Update (Loop)
 
+    'Start Device Interactions
     Public pntMouse As Point
     Private Sub Form1_MouseMove(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles MyBase.MouseMove, pbxPlayArea.MouseMove
         pntMouse = New Point(e.X, e.Y)
@@ -512,25 +517,6 @@ Public Class Form1
         End If
     End Sub
 
-    Private Sub ButtonUnPress(ByVal o As System.Object, ByVal e As KeyEventArgs) Handles Me.KeyUp
-        If e.KeyCode = Keys.W Then
-            blnWDown = False
-            GiveKeyUpToFriends(My.Computer.Name, "W", meObj.GetDrawPoint(0))
-        End If
-        If e.KeyCode = Keys.A Then
-            blnADown = False
-            GiveKeyUpToFriends(My.Computer.Name, "A", meObj.GetDrawPoint(0))
-        End If
-        If e.KeyCode = Keys.S Then
-            blnSDown = False
-            GiveKeyUpToFriends(My.Computer.Name, "S", meObj.GetDrawPoint(0))
-        End If
-        If e.KeyCode = Keys.D Then
-            blnDDown = False
-            GiveKeyUpToFriends(My.Computer.Name, "D", meObj.GetDrawPoint(0))
-        End If
-    End Sub
-
     Private Sub GiveKeyDownToFriends(ByVal strMyName As String, ByVal key As Char, ByVal mousePnt As Point)
         'send my computers the name
         For index As Short = 0 To lstComputers.Count - 1
@@ -548,6 +534,25 @@ Public Class Form1
             Writer.Flush()
             Writer.Flush()
         Next
+    End Sub
+
+    Private Sub ButtonUnPress(ByVal o As System.Object, ByVal e As KeyEventArgs) Handles Me.KeyUp
+        If e.KeyCode = Keys.W Then
+            blnWDown = False
+            GiveKeyUpToFriends(My.Computer.Name, "W", meObj.GetDrawPoint(0))
+        End If
+        If e.KeyCode = Keys.A Then
+            blnADown = False
+            GiveKeyUpToFriends(My.Computer.Name, "A", meObj.GetDrawPoint(0))
+        End If
+        If e.KeyCode = Keys.S Then
+            blnSDown = False
+            GiveKeyUpToFriends(My.Computer.Name, "S", meObj.GetDrawPoint(0))
+        End If
+        If e.KeyCode = Keys.D Then
+            blnDDown = False
+            GiveKeyUpToFriends(My.Computer.Name, "D", meObj.GetDrawPoint(0))
+        End If
     End Sub
 
     Private Sub GiveKeyUpToFriends(ByVal strMyName As String, ByVal key As Char, ByVal myPnt As Point)
@@ -569,6 +574,7 @@ Public Class Form1
             'Send Pos too.
         Next
     End Sub
+    'End Device Interactions
 
     'Start Converted Internet
     Function sqr(ByVal x) As Double
@@ -594,7 +600,7 @@ Public Class Form1
         Return Math.Sqrt(DistanceToSegmentSquared(p, v, w))
     End Function
 
-    Public Function FindIntersectPoint(ByVal A As Point, ByVal B As Point, ByVal C As Point, ByVal D As Point) As Point
+    Function FindIntersectPoint(ByVal A As Point, ByVal B As Point, ByVal C As Point, ByVal D As Point) As Point
         Dim dy1 As Double = B.Y - A.Y
 
         Dim dx1 As Double = B.X - A.X
@@ -621,7 +627,7 @@ Public Class Form1
     End Function
     'End Converted Internet
 
-    'Main LAN Stuff vvv
+    'Start Main LAN
     Private Sub Listening()  'starts listening for info from other com.
         listener.Start()
     End Sub
@@ -844,5 +850,6 @@ Public Class Form1
         lstComputers.Add(strName)
         lbxComputersConnectedTo.Items.Add(strName)
     End Sub
+    'End Main LAN
 
 End Class

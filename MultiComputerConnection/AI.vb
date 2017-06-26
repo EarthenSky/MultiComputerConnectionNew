@@ -12,6 +12,7 @@
 
     Sub New(ByVal pnt As Point, ByVal img As Image, ByVal radius As Short, ByVal shtAnimationInterval As Short)
         MyBase.New(pnt, img, radius, shtAnimationInterval)
+        PlayAnimation(1)
     End Sub
 
     Private pntMoveTo As Point = New Point(-1, -1) 'AI Position can never become negitave.  (-1, -1) is pretty much null
@@ -23,9 +24,6 @@
             Dim shtDistance As Short = FindDistance(Form1.meObj.GetDrawPoint(0), lstPointPosition(0).pnt)
 
             If shtDistance > 300 Then 'No next movement pos
-                If pntCurrentImgIndexes.X <> 1 Then
-                    PlayAnimation(1)
-                End If
 
                 If shtMoveSpeed <> 3 Then
                     shtMoveSpeed = 3
@@ -34,6 +32,10 @@
                 If GeneralPointComparison(pntMyPos, pntMoveTo) Then 'Point needs to be set
                     pntMoveTo = New Point(-1, -1) 'Set point to 'null'
 
+                    If pntCurrentImgIndexes.X <> 1 Then
+                        PlayAnimation(1)
+                    End If
+
                 ElseIf pntMoveTo <> New Point(-1, -1) Then 'Move to point
                     Dim pntMove As Point = GetMoveAmountScaled(pntMoveTo, pntMyPos)
                     lstPointPosition(0) = New CircleBox(New Point(pntMyPos.X + pntMove.X, pntMyPos.Y + pntMove.Y), lstPointPosition(0).sngRadius)
@@ -41,7 +43,6 @@
                     If pntCurrentImgIndexes.X <> 0 Then
                         PlayAnimation(0)
                     End If
-
                 End If
 
                 Debug.Print("1" & pntMoveTo.ToString())
