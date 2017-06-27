@@ -8,7 +8,11 @@
     Public sngRadius As Single
 End Structure
 
-Public Class OverDropObject 'The thing that happened with GetMainPoint() and GetDrawPoint() was really weird and also accidental, idk what happened with it.
+Public Class OverDropObject
+    'The thing that happened with GetMainPoint() and GetDrawPoint() was really weird and also accidental.
+    'GetMainPoint() was supposed to get the centre but now it acts as a way to get the radius.  IDK how it got like this but it's too late to change it.
+    'Also the inheritance thing is sort of weird too, sorry.
+
     Public lstPointPosition As New List(Of CircleBox) 'Holds all of the circles.  'This is also sort of weird and should have not been a list.
     Public imgMainImage As Image
     Public pntLastPos As Point
@@ -18,17 +22,12 @@ Public Class OverDropObject 'The thing that happened with GetMainPoint() and Get
         imgMainImage = img
     End Sub
 
-    Public Function GetDrawPoint(ByVal shtIndex As Short) As Point 'Only pnt
-        If lstPointPosition.Count >= 1 Then  'TODO: take this away in the future, this is debug
-            Return lstPointPosition(shtIndex).pnt
-        End If
+    Public Function GetDrawPoint(ByVal shtIndex As Short) As Point 'Only gets the top left corner point
+        Return lstPointPosition(shtIndex).pnt
     End Function
 
-    Public Function GetMainPoint(ByVal shtIndex As Short) As CircleBox 'Has pnt and rad
-        If lstPointPosition.Count >= 1 Then  'TODO: take this away in the future, this is debug
-            'Return New CircleBox(New Point(lstPointPosition(shtIndex).pnt.X + (imgMainImage.Width / 2), lstPointPosition(shtIndex).pnt.Y + (imgMainImage.Height / 2)), lstPointPosition(shtIndex).sngRadius)
-            Return New CircleBox(New Point(lstPointPosition(shtIndex).pnt.X, lstPointPosition(shtIndex).pnt.Y), lstPointPosition(shtIndex).sngRadius)
-        End If
+    Public Function GetMainPoint(ByVal shtIndex As Short) As CircleBox  'This gets the top right corner as a circlebox so it also has radius.
+        Return New CircleBox(New Point(lstPointPosition(shtIndex).pnt.X, lstPointPosition(shtIndex).pnt.Y), lstPointPosition(shtIndex).sngRadius)
     End Function
 
     Public Sub SetMainPoint(ByVal pnt As Point)

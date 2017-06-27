@@ -76,7 +76,6 @@
     <Compile Include="AnimationObject.vb" />
     <Compile Include="CollisionMap.vb" />
     <Compile Include="MainCharacter.vb" />
-    <Compile Include="Player.vb" />
     <Compile Include="OverDropObject.vb" />
     <Compile Include="Form1.vb">
       <SubType>Form</SubType>
@@ -113,8 +112,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="EnemyOne.xcf" />
-    <None Include="MainChar2_SpriteSheet.xcf" />
     <None Include="My Project\Application.myapp">
       <Generator>MyApplicationCodeGenerator</Generator>
       <LastGenOutput>Application.Designer.vb</LastGenOutput>
@@ -127,20 +124,12 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="126%283 - Chaosotacitc Skies%29.wav" />
-    <Content Include="ActualMapDraw.png" />
     <Content Include="ActualMapDraw2.png" />
     <Content Include="ActualMapMath.png" />
     <Content Include="BugOne_MiniEnemy_SpriteSheet.png" />
     <Content Include="Circle.png" />
-    <Content Include="ColliderMap.png" />
-    <Content Include="ColliderMap2.png" />
-    <Content Include="ColliderMap2Draw.png" />
-    <Content Include="ColliderMapDraw.png" />
-    <Content Include="EnemyFOne.png" />
-    <Content Include="Grid of tiles.png" />
     <Content Include="HealthBad.png" />
     <Content Include="HealthGood.png" />
-    <Content Include="MainChar 2.png" />
     <Content Include="MainChar2_SpriteSheet.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
